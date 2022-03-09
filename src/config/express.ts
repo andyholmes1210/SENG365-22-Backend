@@ -9,6 +9,7 @@ export default () => {
     app.use(allowCrossOriginRequestsMiddleware);
     app.use(bodyParser.json());
     app.use(bodyParser.raw({ type: 'text/plain' }));  // for the /executeSql endpoint
+    app.use(bodyParser.raw({ type: 'image/*', limit: '25mb'}));  // for get image body
 
     // DEBUG (you can remove these)
     app.use((req, res, next) => {
@@ -22,6 +23,8 @@ export default () => {
 
     // ROUTES
     require('../app/routes/backdoor.routes')(app);
+    require('../app/routes/users.routes')(app);
+    require('../app/routes/users.images.routes')(app);
 
     return app;
 

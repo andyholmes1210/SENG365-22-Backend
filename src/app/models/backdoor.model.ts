@@ -1,9 +1,11 @@
 import {getPool} from "../../config/db";
 import fs from 'mz/fs';
 import * as defaultUsers from "../resources/default_users.json"
+import {passwordHash} from '../middleware/password-hash';
 
 const imageDirectory = './storage/images/';
 const defaultPhotoDirectory = './storage/default/';
+
 
 import Logger from "../../config/logger";
 import {OkPacket, ResultSetHeader, RowDataPacket} from "mysql2";
@@ -64,10 +66,9 @@ const populateDefaultUsers = async (): Promise<void> => {
     }
 }
 
-// @ts-ignore
-async function changePasswordToHash(user, passwordIndex) {
+async function changePasswordToHash(user: { [x: string]: string; }, passwordIndex: number) {
     // TODO you need to implement "passwords.hash()" yourself, then uncomment the line below.
-    // user[passwordIndex] = await passwords.hash(user[passwordIndex]);
+    user[passwordIndex] = await passwordHash(user[passwordIndex]);
 
     // It is recommended you use a reputable cryptology library to do the actual hashing/comparing for you...
 }
