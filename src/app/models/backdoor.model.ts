@@ -1,7 +1,7 @@
 import {getPool} from "../../config/db";
 import fs from 'mz/fs';
 import * as defaultUsers from "../resources/default_users.json"
-import {passwordHash} from '../middleware/password-hash';
+import {passwordHash} from '../middleware/password.hash';
 
 const imageDirectory = './storage/images/';
 const defaultPhotoDirectory = './storage/default/';

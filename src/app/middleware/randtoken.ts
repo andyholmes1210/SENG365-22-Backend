@@ -1,7 +1,7 @@
 import randtoken from 'rand-token';
 
-const randToken = async () : Promise<any> =>{
+const randomToken = async () : Promise<any> =>{
     return randtoken.generate(32);
 };
 
-export {randToken}
+export {randomToken}

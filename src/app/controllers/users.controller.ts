@@ -1,7 +1,7 @@
 import * as users from "../models/users.model";
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
-import {randToken} from '../middleware/randtoken';
+import {randomToken} from '../middleware/randtoken';
 
 const registerUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to create a new user...');
@@ -45,9 +45,10 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
 
 const loginUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to login a user...');
-    const token = randToken;
+    const token = randomToken;
     try {
         const userid = await users.login(req.body, token);
+        print()
         if (userid) {
             res.statusMessage = 'Login Successful';
             res.status(200)
@@ -56,9 +57,7 @@ const loginUser = async (req: Request, res: Response) : Promise<void> => {
         } else {
             res.status(400)
                 .send("Wrong password");
-
         }
-
     } catch {
         res.status(500)
             .send('Internal Server Error')

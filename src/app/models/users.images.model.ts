@@ -7,7 +7,7 @@ import fs from 'mz/fs';
 const getImage = async (id: number) : Promise<User[]> => {
     Logger.info(`Getting image from the database`);
     const conn = await getPool().getConnection();
-    const query = 'select image_filename from user where user_id = ?';
+    const query = 'SELECT image_filename FROM user WHERE user_id = ?';
     const [ rows ] = await conn.query( query, [ id ] );
     conn.release();
     return rows
