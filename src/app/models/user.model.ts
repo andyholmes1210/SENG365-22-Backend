@@ -3,6 +3,7 @@ import Logger from "../../config/logger";
 import {ResultSetHeader} from "mysql2";
 import {passwordHash} from '../middleware/password.hash';
 import {passwordVerify} from '../middleware/password.verify';
+import Console from "console";
 
 const register = async (values: User) : Promise<ResultSetHeader> => {
     Logger.info(`Adding user to the database`);
@@ -15,7 +16,7 @@ const register = async (values: User) : Promise<ResultSetHeader> => {
     return result;
 };
 
-const login = async (values: User, token: () => Promise<any>) : Promise<ResultSetHeader> => {
+const login = async (values: User, token: string) : Promise<any> => {
     Logger.info(`Login user into the database`);
 
     const conn = await getPool().getConnection();
@@ -32,9 +33,11 @@ const login = async (values: User, token: () => Promise<any>) : Promise<ResultSe
 
         if (passwordT) {
             const query2 = 'UPDATE user SET auth_token = ? WHERE email = ?';
-            const [result2] = await conn.query(query2, [[token], [values.email]]);
+            const [result2] = await conn.query(query2, [token, values.email]);
             conn.release();
             return result;
+        } else {
+            return false;
         }
     }
 };

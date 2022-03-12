@@ -23,9 +23,11 @@ export default () => {
 
     // ROUTES
     require('../app/routes/backdoor.routes')(app);
-    require('../app/routes/users.routes')(app);
-    require('../app/routes/users.images.routes')(app);
-    require('../app/routes/auctions.routes')(app);
+    require('../app/routes/user.routes')(app);
+    require('../app/routes/user.images.routes')(app);
+    require('../app/routes/auction.routes')(app);
+    require('../app/routes/auction.images.routes')(app);
+    require('../app/routes/auction.bids.routes')(app);
 
     return app;
 

@@ -1,5 +1,5 @@
 import {Express} from "express";
-import * as auctions from '../controllers/auctions.controller';
+import * as auctions from '../controllers/auction.controller';
 import {rootUrl} from "./base.routes";
 
 module.exports = ( app: Express ) => {

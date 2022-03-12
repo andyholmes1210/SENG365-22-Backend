@@ -1,5 +1,5 @@
 import {Express} from "express";
-import * as users from '../controllers/users.controller';
+import * as users from '../controllers/user.controller';
 import {rootUrl} from "./base.routes";
 
 module.exports = ( app: Express ) => {
