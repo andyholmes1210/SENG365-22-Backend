@@ -33,7 +33,7 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> =>
                 .send('Not Found')
         } else {
             res.status( 200 )
-                .send( result );
+                .json( result[0] );
         }
     } catch( err ) {
         res.status( 500 )
