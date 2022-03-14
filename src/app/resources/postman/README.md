@@ -21,6 +21,10 @@ To choose which application you send your requests to, select the corresponding 
 * "Auctions: localhost" will use the locally running application (on port 4941).
 * "Auctions: reference server" will use the reference server (this will be added to your repository in the future).
 
+7. Finally, you need to add the images stored in the /files directory to your Postman working directory. 
+The location of this directory can be found by selecting 'File'>'Settings' at the bottom left of the 'General' tab 
+under the heading 'Working directory'.
+
 
 ## Notes about the collection
 The collection we have provided does depend on some requests as dependencies of others. Whilst it likely makes sense 
