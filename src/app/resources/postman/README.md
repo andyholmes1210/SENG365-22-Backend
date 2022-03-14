@@ -11,19 +11,15 @@ To import the collection:
 2. Click Choose Files
 3. Select `Auctions site.postman_collection.json`
 
-To import the environments:
-4. Click the gear icon (⚙️)
-5. Click Import
-6. Click Choose Files
-7. Select the three files that end in `.postman_environment.json`
-8. Click Petitions: deployed application
-9. Change the current value so that it uses your `SENG365_PORT` instead of `4001`
-10. Click Update
+To import the environment(s):
+4. From the menu select File>Import...
+5. Click Choose Files
+6. Select the file(s) that end in `.postman_environment.json`
 
 To choose which application you send your requests to, select the corresponding environment from the dropdown in the top right (by default, it will be "No Environment"). This will set the `BASE_URL` variable.
 
-* "Petitions: localhost" will use the locally running application (on port 4941).
-* "Petitions: reference server" will use the reference server.
+* "Auctions: localhost" will use the locally running application (on port 4941).
+* "Auctions: reference server" will use the reference server (this will be added to your repository in the future).
 
 
 ## Notes about the collection
@@ -32,7 +28,7 @@ to require login functionality before being able to do other user operations suc
 login functionality is also used for other requests (such as creating an auction) as authorisation is needed. Similar 
 dependencies exists throughout, e.g. first creating an auction before deleting it
 
-Therefore, it is recommended that you first complete the login and register user endpoints, and for each sub section you 
+Therefore, it is recommended that you first complete the login and register user endpoints, and for each subsection you 
 first implement the POST and GET endpoints before working on PATCH/PUT and DELETE.
 
 ## Found an Issue?
