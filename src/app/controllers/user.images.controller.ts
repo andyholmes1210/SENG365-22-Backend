@@ -4,8 +4,7 @@ import {Request, Response} from "express";
 import Console from "console";
 
 
-const getUserImage = async (req: Request, res: Response) : Promise<void> =>
-{
+const getUserImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get user image...'`)
     const id = req.params.id;
     try {

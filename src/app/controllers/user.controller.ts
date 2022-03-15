@@ -46,23 +46,58 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
 
 const loginUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to login a user...');
+
     const token = await randomToken();
-    const user = await users.login(req.body, token);
+    const tokenexist = await users.gettoken(req.body.email);
 
-    if (user === false) {
+    if (tokenexist[0].auth_token !== null) {
         res.status(400)
-            .send("Bad Request: Incorrect password");
-
-    } else if (user.length > 0) {
-        res.statusMessage = 'Login Successful';
-        res.status(200)
-            .send({userId: user[0].id, token});
-
+            .send("Bad Request: Already login");
     } else {
-        res.status(500)
-            .send('Internal Server Error');
+        const user = await users.login(req.body, token);
+        if (user === false) {
+            res.status(400)
+                .send("Bad Request: Incorrect password");
+
+        } else if (user.length > 0) {
+            res.header('X-Authorization', token);
+            res.statusMessage = 'Login Successful';
+            res.status(200)
+                .send({userId: user[0].id, token});
+
+        } else {
+            res.status(500)
+                .send('Internal Server Error');
+        }
     }
 };
 
+const logoutUser = async (req: Request, res: Response) : Promise<void> => {
+    Logger.http('Request to logout user...');
 
-export { registerUser, loginUser }
+    const token = req.header('X-Authorization');
+    const tokennull: any = null;
+
+    try {
+        if (token) {
+            if (token === JSON.stringify(null)) {
+                res.status(400)
+                    .send('Bad Request: You need to login to logout');
+            } else {
+                await users.logout(token);
+                res.header('X-Authorization', tokennull);
+                res.status(200)
+                    .send('Logout Successful');
+            }
+        } else {
+            res.status(401)
+                .send('Unauthorized');
+        }
+    } catch {
+        res.status(500)
+            .send('Internal Server Error')
+    }
+
+};
+
+export { registerUser, loginUser, logoutUser }

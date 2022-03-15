@@ -5,8 +5,7 @@ import Console from "console";
 
 
 
-const getAuctionImage = async (req: Request, res: Response) : Promise<void> =>
-{
+const getAuctionImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get the auction image...'`)
     const id = req.params.id;
     try {

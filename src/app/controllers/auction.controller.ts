@@ -4,12 +4,11 @@ import {Request, Response} from "express";
 import Console from "console";
 
 
-const getAllAuction = async (req: Request, res: Response) : Promise<void> =>
-{
+const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Auction...`)
     try {
         if (req.body !== 0){
-            const result = await auctions.getAll();
+            const result = await auctions.getall();
             res.status( 200 ).send( result );
         } else {
             res.status(400)
@@ -21,13 +20,12 @@ const getAllAuction = async (req: Request, res: Response) : Promise<void> =>
     }
 };
 
-const getOneAuction = async (req: Request, res: Response) : Promise<void> =>
-{
+const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get One Auction...`)
     const id = req.params.id
 
     try {
-        const result = await auctions.getOne( Number(id) );
+        const result = await auctions.getone( Number(id) );
         if (result === false) {
             res.status(404)
                 .send('Not Found')
@@ -42,8 +40,7 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> =>
 
 };
 
-const getAllCategory = async (req: Request, res: Response) : Promise<void> =>
-{
+const getAllCategory = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Categories...`)
     try {
         const result = await auctions.category();

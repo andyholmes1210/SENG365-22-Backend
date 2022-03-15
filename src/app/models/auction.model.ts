@@ -2,7 +2,7 @@ import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 import Console from "console";
 
-const getAll = async () : Promise<Auction[]> => {
+const getall = async () : Promise<Auction[]> => {
     Logger.info(`Getting all Auction from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT * FROM auction';
@@ -11,7 +11,7 @@ const getAll = async () : Promise<Auction[]> => {
     return rows;
 };
 
-const getOne = async (id: number) : Promise<any> => {
+const getone = async (id: number) : Promise<any> => {
     Logger.info(`Getting one Auction from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT ' +
@@ -56,8 +56,19 @@ const category = async () : Promise<Category[]> => {
 };
 
 
+const getauctiondate = async (id: number) : Promise<any> => {
+    Logger.info(`Getting auction date from the database`);
+    const conn = await getPool().getConnection();
+    const query = 'SELECT end_date FROM auction WHERE id = ?'
+    const [ rows ] = await conn.query( query , [ id ]);
+    conn.release();
+    return rows;
+
+
+}
 
 
 
 
-export { getAll, getOne, category }
+
+export { getall, getone, category, getauctiondate }

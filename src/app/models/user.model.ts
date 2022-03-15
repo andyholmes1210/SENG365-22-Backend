@@ -42,5 +42,37 @@ const login = async (values: User, token: string) : Promise<any> => {
     }
 };
 
+const logout = async (token: string) : Promise<any> => {
+    Logger.info(`Logout user from the database`);
 
-export {register, login}
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE user SET auth_token = ? WHERE auth_token = ?';
+    const [ result ] = await conn.query( query, [[null], [token]]);
+    conn.release();
+    return result;
+
+}
+
+// const getidbytoken = async (token: string) : Promise<any> => {
+//     Logger.info(`Getting userid from the database`);
+//
+//     const conn = await getPool().getConnection();
+//     const query = 'SELECT id FROM user WHERE auth_token = ?';
+//     const [ result ] = await conn.query( query, [ token ]);
+//     conn.release();
+//     return result;
+// }
+
+const gettoken = async (email: string) : Promise<any> => {
+    Logger.info(`Getting user token from the database`);
+
+    const conn = await getPool().getConnection();
+    const query = 'SELECT auth_token FROM user WHERE email = ?';
+    const [ result ] = await conn.query( query, [ email ]);
+    conn.release();
+    return result;
+
+}
+
+
+export {register, login, logout, gettoken}

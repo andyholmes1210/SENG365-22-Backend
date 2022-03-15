@@ -1,7 +1,7 @@
-/*
-import {Request, Response} from "express";
+import {getPool} from "../../config/db";
+import {Request, Response, NextFunction} from "express";
 
-const loginRequired = async function (req : Request, res : Response, next) {
+const loginRequired = async (req : Request, res : Response, next:NextFunction) : Promise<void> => {
     const token = req.header('X-Authorization');
 
     try {
@@ -9,26 +9,24 @@ const loginRequired = async function (req : Request, res : Response, next) {
         if (result === null) {
             res.statusMessage = 'Unauthorized';
             res.status(401)
-                .send();
+                .send("Unauthorized: Please Login");
         } else {
-            req.authenticatedUserId = result.toString();
+            req.body.authenticatedUserId = String(result);
             next();
         }
 
     } catch (err) {
-        if (!err.hasBeenLogged) console.error(err);
         res.statusMessage = 'Internal Server Error';
         res.status(500)
-            .send();
+            .send("Internal Server Error");
     }
 };
 
-const findUserIdbyToken = async function (values) {
+const findUserIdbyToken = async  (values: string) : Promise<void> => {
 
-    const conn = await db.getPool().getConnection();
-    const query = 'select id from user where auth_token = ?';
+    const conn = await getPool().getConnection();
+    const query = 'SELECT id FROM user WHERE auth_token = ?';
     const [ result ] = await conn.query( query, [values]);
-    //console.log(result[0].id);
     if (result.length === 0){
         return null
     } else {
@@ -36,4 +34,5 @@ const findUserIdbyToken = async function (values) {
     }
 
 };
-*/
+
+export {loginRequired, findUserIdbyToken}

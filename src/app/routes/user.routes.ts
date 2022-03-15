@@ -7,5 +7,7 @@ module.exports = ( app: Express ) => {
         .post( users.registerUser );
     app.route(rootUrl + '/users/login' )
         .post( users.loginUser )
+    app.route(rootUrl + '/users/logout' )
+        .post( users.logoutUser )
 
 };
