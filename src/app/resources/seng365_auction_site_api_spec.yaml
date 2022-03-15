@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   title: 'SENG365 2022: Auction Site API'
-  version: 1.0.0
+  version: 1.0.1
   description: This specification documents the API that must be implemented for Assignment 1. The API provides all of the server-side functionality necessary in order to implement the user stories for Assignment 2.
 servers:
   - url: http://seng365-apitest.csse.canterbury.ac.nz:4001/api/v1
@@ -25,7 +25,7 @@ paths:
       tags:
         - auctions
       summary: View auctions.
-      description: Gets list of all auctions with a subset of auction information. By default, the auctions should be sorted by the closing date of the auctions. The list should be filtered, then sorted, then paginated using `startIndex` and `count`.
+      description: Gets list of all auctions with a subset of auction information. By default, the auctions should be sorted by the closing date of the auctions. The list should be filtered, then sorted, then paginated using `startIndex` and `count`. The returned object should include the total number of auctions that match the search criteria, which may differ from the number returned by the query (this is for client pagination).
       parameters:
         - in: query
           name: startIndex
@@ -70,9 +70,7 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/auctionOverview'
+                $ref: '#/components/schemas/auctionsReturn'
         '400':
           description: Bad Request
         '500':
@@ -81,7 +79,7 @@ paths:
       tags:
         - auctions
       summary: Add a new auction.
-      description: 'The category id number `categoryIds` must reference an existing category. `title`, `description`, `endDate` and `categoryId` are required, other properties are optional. The auction `endDate` must be in the future. If no `reserve` price is specified it will automatically be set to 1.'
+      description: 'The category id number `categoryId` must reference an existing category. `title`, `description`, `endDate` and `categoryId` are required, other properties are optional. The auction `endDate` must be in the future. If no `reserve` price is specified it will automatically be set to 1.'
       security:
         - UserToken: []
       requestBody:
@@ -659,10 +657,9 @@ components:
           type: string
           minLength: 1
           example: Samsung S20
-        categories:
-          type: array
-          items:
-            $ref: '#/components/schemas/category/properties/categoryId'
+        categoryId:
+          type: integer
+          example: 1
         sellerId:
           $ref: '#/components/schemas/fullUser/properties/userId'
         sellerFirstName:
@@ -674,6 +671,11 @@ components:
           minimum: 1
           example: 100
           nullable: true
+        numBids:
+          type: integer
+          minimum: 0
+          example: 9
+          nullable: false
         highestBid:
           type: integer
           minimum: 1
@@ -681,6 +683,19 @@ components:
           nullable: true
         endDate:
           $ref: '#/components/schemas/dateTimeOutput'
+    auctionsReturn:
+      title: auctions
+      type: object
+      properties:
+        auctions:
+          type: array
+          items:
+            $ref: '#/components/schemas/auctionOverview'
+        count:
+          type: integer
+          minimum: 0
+          example: 3
+          nullable: false
     category:
       title: category
       type: object
@@ -734,10 +749,6 @@ components:
       title: bid
       type: object
       properties:
-        bidId:
-          type: integer
-          minimum: 0
-          example: 11
         bidderId:
           $ref: '#/components/schemas/fullUser/properties/userId'
         amount:
