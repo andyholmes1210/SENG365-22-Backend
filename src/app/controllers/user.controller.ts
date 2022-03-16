@@ -49,27 +49,36 @@ const loginUser = async (req: Request, res: Response) : Promise<void> => {
 
     const token = await randomToken();
     const tokenexist = await users.gettoken(req.body.email);
+    const userexist = await users.checkuserexist(req.body.email)
 
-    if (tokenexist[0].auth_token !== null) {
-        res.status(400)
-            .send("Bad Request: Already login");
-    } else {
-        const user = await users.login(req.body, token);
-        if (user === false) {
+
+    if (userexist) {
+        if (tokenexist[0].auth_token !== null) {
             res.status(400)
-                .send("Bad Request: Incorrect password");
-
-        } else if (user.length > 0) {
-            res.header('X-Authorization', token);
-            res.statusMessage = 'Login Successful';
-            res.status(200)
-                .send({userId: user[0].id, token});
-
+                .send("Bad Request: Already login");
         } else {
-            res.status(500)
-                .send('Internal Server Error');
+            const user = await users.login(req.body, token);
+            if (user === false) {
+                res.status(400)
+                    .send("Bad Request: Incorrect password");
+
+            } else if (user.length > 0) {
+                res.header('X-Authorization', token);
+                res.statusMessage = 'Login Successful';
+                res.status(200)
+                    .send({userId: user[0].id, token});
+
+            } else {
+                res.status(500)
+                    .send('Internal Server Error');
+            }
         }
+    } else {
+        res.status(400)
+            .send("Bad Request: Need to register first")
+
     }
+
 };
 
 const logoutUser = async (req: Request, res: Response) : Promise<void> => {

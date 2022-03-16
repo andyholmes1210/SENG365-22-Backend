@@ -10,7 +10,7 @@ const register = async (values: User) : Promise<ResultSetHeader> => {
 
     const newpassword = await passwordHash(values.password);
     const conn = await getPool().getConnection();
-    const query = 'INSERT into user (first_name, last_name, email, password) values ( ? )';
+    const query = 'INSERT INTO user (first_name, last_name, email, password) VALUES ( ? )';
     const [ result ] = await conn.query( query, [[[ values.firstName ], [ values.lastName ], [ values.email ], [ newpassword ]]] );
     conn.release();
     return result;
@@ -53,15 +53,18 @@ const logout = async (token: string) : Promise<any> => {
 
 }
 
-// const getidbytoken = async (token: string) : Promise<any> => {
-//     Logger.info(`Getting userid from the database`);
-//
-//     const conn = await getPool().getConnection();
-//     const query = 'SELECT id FROM user WHERE auth_token = ?';
-//     const [ result ] = await conn.query( query, [ token ]);
-//     conn.release();
-//     return result;
-// }
+const checkuserexist = async (email: string) : Promise<any> => {
+    Logger.info(`Getting userid from the database`);
+
+    const conn = await getPool().getConnection();
+    const query = 'SELECT id FROM user WHERE email = ?';
+    const [ result ] = await conn.query( query, [ email ]);
+    conn.release();
+    if (result.length === 0) {
+        return false
+    } else
+        return true;
+}
 
 const gettoken = async (email: string) : Promise<any> => {
     Logger.info(`Getting user token from the database`);
@@ -75,4 +78,4 @@ const gettoken = async (email: string) : Promise<any> => {
 }
 
 
-export {register, login, logout, gettoken}
+export {register, login, logout, gettoken, checkuserexist}
