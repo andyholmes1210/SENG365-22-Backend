@@ -2,7 +2,7 @@ import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 import Console from "console";
 
-const getall = async () : Promise<Auction[]> => {
+const getAll = async () : Promise<Auction[]> => {
     Logger.info(`Getting all Auction from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT * FROM auction';
@@ -11,7 +11,7 @@ const getall = async () : Promise<Auction[]> => {
     return rows;
 };
 
-const getone = async (id: number) : Promise<any> => {
+const getOne = async (id: number) : Promise<any> => {
     Logger.info(`Getting one Auction from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT ' +
@@ -32,7 +32,6 @@ const getone = async (id: number) : Promise<any> => {
         'INNER JOIN auction_bid ON auction.id = auction_bid.auction_id ' +
         'WHERE auction.id = ?';
     const [ rows ] = await conn.query( query, [ id ] );
-    Console.log( rows )
     conn.release();
     if (rows[0].auctionId === null){
         return false;
@@ -56,7 +55,7 @@ const category = async () : Promise<Category[]> => {
 };
 
 
-const getauctiondate = async (id: number) : Promise<any> => {
+const getAuctionDate = async (id: number) : Promise<any> => {
     Logger.info(`Getting auction date from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT end_date FROM auction WHERE id = ?'
@@ -71,4 +70,4 @@ const getauctiondate = async (id: number) : Promise<any> => {
 
 
 
-export { getall, getone, category, getauctiondate }
+export { getAll, getOne, category, getAuctionDate }

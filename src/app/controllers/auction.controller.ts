@@ -8,7 +8,7 @@ const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Auction...`)
     try {
         if (req.body !== 0){
-            const result = await auctions.getall();
+            const result = await auctions.getAll();
             res.status( 200 ).send( result );
         } else {
             res.status(400)
@@ -25,7 +25,7 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
     const id = req.params.id
 
     try {
-        const result = await auctions.getone( Number(id) );
+        const result = await auctions.getOne( Number(id) );
         if (result === false) {
             res.status(404)
                 .send('Not Found')

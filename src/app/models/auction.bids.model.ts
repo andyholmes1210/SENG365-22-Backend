@@ -3,7 +3,7 @@ import Logger from "../../config/logger";
 import Console from "console";
 
 
-const getbid = async (id: number) : Promise<any> => {
+const getBid = async (id: number) : Promise<any> => {
     Logger.info(`Getting All bid by ID from the database`);
     const conn = await getPool().getConnection();
     const query = 'SELECT ' +
@@ -30,13 +30,13 @@ const getbid = async (id: number) : Promise<any> => {
 /*
 FIX QUERY
  */
-const bid = async (auctionid: number, id: number, amount: number, dateTime: Date) : Promise<any> => {
+const bid = async (auctionId: number, id: number, amount: number, dateTime: Date) : Promise<any> => {
     Logger.info(`Inserting a bid into the database`);
     const conn = await getPool().getConnection();
     const query = 'INSERT INTO auction_bid (auction_id, user_id, amount, timestamp) VALUES ( ? )';
-    const [ result ] = await conn.query( query, [[[auctionid] , [id],  [amount], [dateTime]]]);
+    const [ result ] = await conn.query( query, [[[auctionId] , [id],  [amount], [dateTime]]]);
     conn.release();
     return result;
 }
 
-export { getbid, bid }
+export { getBid, bid }
