@@ -62,9 +62,7 @@ const getAuctionDate = async (id: number) : Promise<any> => {
     const [ rows ] = await conn.query( query , [ id ]);
     conn.release();
     return rows;
-
-
-}
+};
 
 
 

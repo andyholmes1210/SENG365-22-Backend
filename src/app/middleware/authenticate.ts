@@ -5,11 +5,11 @@ const loginRequired = async (req : Request, res : Response, next:NextFunction) :
     const token = req.header('X-Authorization');
 
     try {
-        const result = await findUserIdbyToken(token);
+        const result = await findUserIdByToken(token);
         if (result === null) {
             res.statusMessage = 'Unauthorized';
             res.status(401)
-                .send("Unauthorized: Please Login");
+                .json("Unauthorized: Please Login");
         } else {
             req.body.authenticatedUserId = String(result);
             next();
@@ -22,7 +22,7 @@ const loginRequired = async (req : Request, res : Response, next:NextFunction) :
     }
 };
 
-const findUserIdbyToken = async  (values: string) : Promise<void> => {
+const findUserIdByToken = async  (values: string) : Promise<void> => {
 
     const conn = await getPool().getConnection();
     const query = 'SELECT id FROM user WHERE auth_token = ?';
@@ -35,4 +35,4 @@ const findUserIdbyToken = async  (values: string) : Promise<void> => {
 
 };
 
-export {loginRequired, findUserIdbyToken}
+export {loginRequired, findUserIdByToken}

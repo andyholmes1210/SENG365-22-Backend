@@ -3,6 +3,8 @@ import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import {randomToken} from '../middleware/randtoken';
 import * as Console from "console";
+import {getUserDetails} from "../models/user.model";
+
 
 const registerUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to create a new user...');
@@ -48,12 +50,11 @@ const loginUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to login a user...');
 
     const token = await randomToken();
-    const tokenexist = await users.gettoken(req.body.email);
-    const userexist = await users.checkuserexist(req.body.email)
+    const tokenExist = await users.getToken(req.body.email);
+    const userExist = await users.checkUserExist(req.body.email)
 
-
-    if (userexist) {
-        if (tokenexist[0].auth_token !== null) {
+    if (userExist) {
+        if (tokenExist[0].auth_token !== null) {
             res.status(400)
                 .send("Bad Request: Already login");
         } else {
@@ -76,16 +77,13 @@ const loginUser = async (req: Request, res: Response) : Promise<void> => {
     } else {
         res.status(400)
             .send("Bad Request: Need to register first")
-
     }
-
 };
 
 const logoutUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to logout user...');
 
     const token = req.header('X-Authorization');
-    const tokennull: any = null;
 
     try {
         if (token) {
@@ -94,7 +92,7 @@ const logoutUser = async (req: Request, res: Response) : Promise<void> => {
                     .send('Bad Request: You need to login to logout');
             } else {
                 await users.logout(token);
-                res.header('X-Authorization', tokennull);
+                res.header('X-Authorization', null);
                 res.status(200)
                     .send('Logout Successful');
             }
@@ -106,7 +104,74 @@ const logoutUser = async (req: Request, res: Response) : Promise<void> => {
         res.status(500)
             .send('Internal Server Error')
     }
-
 };
 
-export { registerUser, loginUser, logoutUser }
+const getDetails = async (req: Request, res: Response) : Promise<void> => {
+    Logger.http('Request to get user details...');
+
+    const token = req.header('X-Authorization');
+    const id = req.params.id;
+    const userPass = await users.checkId( Number(id) );
+    const authPass = await users.checkIdMatchToken( Number(id), token);
+
+    try{
+        if (userPass) {
+            const userDetails = await users.getUserDetails( Number(id) );
+            Console.log(userDetails)
+            if (authPass) {
+                res.status(200)
+                    .send({
+                        firstName: userDetails[0].first_name,
+                        lastName: userDetails[0].last_name,
+                        email: userDetails[0].email
+                    })
+            } else {
+                res.status(200)
+                    .send({
+                        firstName: userDetails[0].first_name,
+                        lastName: userDetails[0].last_name,
+                    })
+            }
+        } else {
+            res.status(404)
+                .json("User Not Found")
+        }
+    } catch {
+        res.status(500)
+            .send('Internal Server Error')
+    }
+};
+
+
+// const updateDetails = async (req: Request, res: Response) : Promise<void> => {
+//     const id = req.params.id
+//     const token = req.header('X-Authorization');
+//     const authPass = await users.checkIdMatchToken( Number(id), token);
+//
+//     try {
+//         if (authPass) {
+//             if (!(req.body.hasOwnProperty("email")) && (req.body.hasOwnProperty("password")) && (req.body.hasOwnProperty("currentPassword"))) {
+//
+//             } else {
+//
+//             }
+//
+//
+//
+//
+//
+//
+//         } else {
+//           res.status(403)
+//               .send("Forbidden: Can not update another users details")
+//         }
+//     } catch {
+//
+//     }
+//
+//
+//
+// };
+
+
+export { registerUser, loginUser, logoutUser, getDetails }

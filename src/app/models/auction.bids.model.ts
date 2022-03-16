@@ -26,10 +26,6 @@ const getBid = async (id: number) : Promise<any> => {
     }
 };
 
-
-/*
-FIX QUERY
- */
 const bid = async (auctionId: number, id: number, amount: number, dateTime: Date) : Promise<any> => {
     Logger.info(`Inserting a bid into the database`);
     const conn = await getPool().getConnection();
@@ -37,6 +33,6 @@ const bid = async (auctionId: number, id: number, amount: number, dateTime: Date
     const [ result ] = await conn.query( query, [[[auctionId] , [id],  [amount], [dateTime]]]);
     conn.release();
     return result;
-}
+};
 
 export { getBid, bid }
