@@ -29,6 +29,8 @@ const login = async (values: User, token: string) : Promise<any> => {
         const [ result1 ] = await conn.query( query1, [ values.email ]);
         conn.release();
         const pass = result1[0].password;
+        Console.log(pass)
+        Console.log(values.password)
         const passwordT = await passwordVerify(values.password, pass);
 
         if (passwordT) {
@@ -116,22 +118,25 @@ const getUserDetails = async (id: number) : Promise<any> => {
     return result;
 };
 
-// const updateUserDetails = async (id: number, newEmail: string, newPass: string, oldPass: string) : Promise<any> => {
-//     Logger.info(`Updating user details from the database`);
-//
-//     const conn = await getPool().getConnection();
-//     const queryPass = 'SELECT password FROM user WHERE id = ?'
-//     const [ result ] = await conn.query( queryPass, [ id ]);
-//     const checkPass = await passwordVerify(result[0], oldPass)
-//     if (checkPass) {
-//         const query = 'UPDATE user SET email = newEmail WHERE id = id'
-//         const query1 = 'UPDATE user set passowrd = newPass WHERE id = id'
-//         const [ result ] = await conn.query( query, query1, [ id ] )
-//         return result
-//     } else {
-//         return false;
-//     }
-// };
+const updateUserDetails = async (id: number, newPass: string, oldPass: string) : Promise<any> => {
+    Logger.info(`Updating user details from the database`);
+
+    const conn = await getPool().getConnection();
+    const queryPass = 'SELECT password FROM user WHERE id = ?'
+    const [ result ] = await conn.query( queryPass, [ id ]);
+    Console.log(result[0].password)
+    Console.log(oldPass)
+    const checkPass = await passwordVerify(oldPass, result[0].password)
+    Console.log(checkPass)
+    if (checkPass) {
+        const newPassword = await passwordHash(newPass);
+        const query = 'UPDATE user SET password = ? WHERE id = ?'
+        const [ result1 ] = await conn.query( query, [[ newPassword ], [ id ]] )
+        return result1
+    } else {
+        return false;
+    }
+};
 
 
-export { register, login, logout, getToken, checkUserExist, getUserDetails, checkId, checkIdMatchToken }
+export { register, login, logout, getToken, checkUserExist, getUserDetails, checkId, checkIdMatchToken, updateUserDetails }

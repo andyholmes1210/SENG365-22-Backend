@@ -49,7 +49,7 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
 const loginUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to login a user...');
 
-    const token = await randomToken();
+    const token = await randomToken(32);
     const tokenExist = await users.getToken(req.body.email);
     const userExist = await users.checkUserExist(req.body.email)
 
@@ -142,36 +142,44 @@ const getDetails = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+const updateDetails = async (req: Request, res: Response) : Promise<void> => {
 
-// const updateDetails = async (req: Request, res: Response) : Promise<void> => {
-//     const id = req.params.id
-//     const token = req.header('X-Authorization');
-//     const authPass = await users.checkIdMatchToken( Number(id), token);
-//
-//     try {
-//         if (authPass) {
-//             if (!(req.body.hasOwnProperty("email")) && (req.body.hasOwnProperty("password")) && (req.body.hasOwnProperty("currentPassword"))) {
-//
-//             } else {
-//
-//             }
-//
-//
-//
-//
-//
-//
-//         } else {
-//           res.status(403)
-//               .send("Forbidden: Can not update another users details")
-//         }
-//     } catch {
-//
-//     }
-//
-//
-//
-// };
+    const id = req.params.id
+    const token = req.header('X-Authorization');
+    const authPass = await users.checkIdMatchToken( Number(id), token);
+
+    try {
+        if (authPass) {
+            if (!(req.body.hasOwnProperty("password")) && (req.body.hasOwnProperty("currentPassword"))) {
+                res.status(400)
+                    .send('Bad Request: Please add in the password and currentPassword field');
+            } else {
+                const newPass = req.body.password;
+                const oldPass = req.body.currentPassword;
+                    if (newPass.length === 0) {
+                        res.status(400)
+                            .send('Password content is empty');
+                    } else {
+                        const result = await users.updateUserDetails( Number(id), newPass, oldPass);
+                        if (result === false) {
+                            res.status(400)
+                                .send('Bad Request: currentPassword does not match your current password')
+                        } else {
+                            res.status(200)
+                                .send('OK: User password updated')
+                        }
+                    }
+                }
+        } else {
+          res.status(403)
+              .send("Forbidden: Can not update another users details")
+        }
+    } catch {
+        res.status(500)
+            .send('Internal Server Error')
+
+    }
+};
 
 
-export { registerUser, loginUser, logoutUser, getDetails }
+export { registerUser, loginUser, logoutUser, getDetails, updateDetails }

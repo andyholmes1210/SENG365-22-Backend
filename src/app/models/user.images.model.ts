@@ -2,6 +2,8 @@ import {getPool} from "../../config/db";
 import Logger from "../../config/logger";
 import mime from 'mime';
 import fs from 'mz/fs';
+import {randomToken} from '../middleware/randtoken';
+const imagesDirectory = './storage/images/';
 import Console from "console";
 
 const getImageU = async (id: number) : Promise<any> => {
@@ -18,6 +20,34 @@ const getImageU = async (id: number) : Promise<any> => {
     }
 };
 
+
+const updateImageU = async (id: number, imageFilename: string) : Promise<any> => {
+    Logger.info(`Updating user image from the database`);
+
+    const conn = await getPool().getConnection();
+    const query = 'UPDATE user SET image_filename = ? WHERE id = ?';
+    const [ rows ] = await conn.query( query, [[ imageFilename ], [ id ]]);
+    conn.release();
+    return rows
+
+};
+
+
+const storeImageU = async (image: string, imageFileType: string) : Promise<any> => {
+    const filename = await randomToken(32) + imageFileType;
+
+    try {
+        await fs.writeFile(imagesDirectory + filename, image);
+        return filename;
+    } catch (err) {
+        await fs.unlink(imagesDirectory + filename)
+            .catch(err);
+        throw err;
+    }
+
+};
+
+
 const deleteImageU = async (id: number) : Promise<any> => {
     Logger.info(`Deleting user image from the database`);
 
@@ -29,4 +59,4 @@ const deleteImageU = async (id: number) : Promise<any> => {
 };
 
 
-export { getImageU, deleteImageU }
+export { getImageU, deleteImageU, updateImageU, storeImageU }

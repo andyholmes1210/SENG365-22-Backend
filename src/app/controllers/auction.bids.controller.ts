@@ -30,7 +30,6 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
     const date = new Date()
     const token = req.header('X-Authorization');
     const auctionExist = await auction.getOne(Number(req.params.id));
-    Console.log(auctionExist)
     const auctionDate = await auction.getAuctionDate( Number(req.params.id) );
 
     try {

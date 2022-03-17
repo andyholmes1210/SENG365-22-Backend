@@ -12,5 +12,5 @@ module.exports = ( app: Express ) => {
         .post( users.logoutUser );
     app.route(rootUrl + '/users/:id')
         .get( authenticate.loginRequired, users.getDetails )
-        // .patch( authenticate.loginRequired)
+        .patch( authenticate.loginRequired, users.updateDetails);
 };
