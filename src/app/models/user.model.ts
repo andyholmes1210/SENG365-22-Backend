@@ -29,8 +29,6 @@ const login = async (values: User, token: string) : Promise<any> => {
         const [ result1 ] = await conn.query( query1, [ values.email ]);
         conn.release();
         const pass = result1[0].password;
-        Console.log(pass)
-        Console.log(values.password)
         const passwordT = await passwordVerify(values.password, pass);
 
         if (passwordT) {
