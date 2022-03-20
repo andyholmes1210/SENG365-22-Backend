@@ -32,6 +32,7 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
     const auctionExist = await auction.getOne(Number(req.params.id));
     const auctionDate = await auction.getAuctionDate( Number(req.params.id) );
 
+
     try {
         if (token) {
             if (auctionExist !== null) {
