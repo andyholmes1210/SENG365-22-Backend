@@ -6,9 +6,13 @@ import {getImageExtension} from "../middleware/imageextention";
 import Console from "console";
 
 
-
+/**
+ *
+ * @param req
+ * @param res
+ */
 const getUserImage = async (req: Request, res: Response) : Promise<void> => {
-    Logger.http(`Request to get user image...'`)
+    Logger.http(`Request to get user image...'`);
 
     const id = req.params.id;
     try {
@@ -16,24 +20,33 @@ const getUserImage = async (req: Request, res: Response) : Promise<void> => {
         if (result === false) {
             res.status(404)
                 .send('Not Found');
+            return;
         } else {
             res.contentType( result.type );
             res.status( 200 )
                 .send( result.photo );
+            return;
         }
     } catch( err ) {
         if (err.errno === -2 || err.code === 'ENOENT') {
             res.status(404)
                 .send('Not Found');
+            return;
         } else {
             res.status(500)
                 .send(`ERROR reading event ${id}: ${ err }`);
+            return;
         }
     }
 };
 
+/**
+ *
+ * @param req
+ * @param res
+ */
 const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
-    Logger.http(`Request to update user image...'`)
+    Logger.http(`Request to update user image...'`);
 
     const image = req.body;
     const userId = req.params.id;
@@ -52,33 +65,39 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
                     if (existImage) {
                         await usersImage.updateImageU( Number(userId), filename);
                         res.status(200)
-                            .send("OK")
+                            .send("OK");
+                        return;
                     } else {
                         await usersImage.updateImageU( Number(userId), filename);
                         res.status(201)
-                            .send("Created")
+                            .send("Created");
+                        return;
                     }
                 } else {
                     res.status(400)
                         .send('Bad request: image must be image/jpeg, image/png, image/gif type');
+                    return;
                 }
             } else {
                 res.status(400)
                     .send('Bad Request: empty image');
+                return;
             }
         } else {
             res.status(403)
                 .json('Forbidden');
+            return;
         }
     } else {
         res.status(404)
             .json("User Not Found");
+        return;
     }
 };
 
 
 const deleteUserImage = async (req: Request, res: Response) : Promise<void> => {
-    Logger.http(`Request to delete user image...'`)
+    Logger.http(`Request to delete user image...'`);
 
     const id = req.params.id;
     const loginId = req.body.authenticatedUserId;
@@ -92,21 +111,26 @@ const deleteUserImage = async (req: Request, res: Response) : Promise<void> => {
                     await usersImage.deleteImageU( Number(id) );
                     res.status(200)
                         .json('Image deleted');
+                    return;
                 } else {
                     res.status(404)
                         .json('Can not delete Image not found');
+                    return;
                 }
             } catch (err) {
                 res.status(500)
                     .send('Internal Server Error');
+                return;
             }
         } else {
             res.status(403)
                 .send('Forbidden: Can not delete other people Image');
+            return;
         }
     } else {
         res.status(404)
             .send("User Not Found");
+        return;
     }
 };
 

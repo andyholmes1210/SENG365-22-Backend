@@ -12,13 +12,16 @@ const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
         if (req.body !== 0){
             const result = await auctions.getAll();
             res.status( 200 ).send( result );
+            return;
         } else {
             res.status(400)
-                .send('Bad Request')
+                .send('Bad Request');
+            return;
         }
     } catch( err ) {
         res.status( 500 )
             .send( `ERROR getting auctions (Internal Sever Error) ${ err }` );
+        return;
     }
 };
 
@@ -30,14 +33,17 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
         const result = await auctions.getOne( Number(id) );
         if (result === false) {
             res.status(404)
-                .send('Not Found')
+                .send('Not Found');
+            return;
         } else {
             res.status( 200 )
                 .json( result[0] );
+            return;
         }
     } catch( err ) {
         res.status( 500 )
             .send( `ERROR getting auction (Internal Sever Error) ${ err }` );
+        return;
     }
 
 };
@@ -55,18 +61,23 @@ const addAuction = async (req: Request, res: Response) : Promise<void> => {
             if (!req.body.hasOwnProperty("title") || details.title.length === 0) {
                 res.status(400)
                     .send('Bad Request: Please provide title');
+                return;
             } else if (!req.body.hasOwnProperty("description") || details.description.length === 0) {
                 res.status(400)
                     .send('Bad Request: Please provide description');
+                return;
             } else if (!req.body.hasOwnProperty("reserve") || details.reserve === "") {
                 res.status(400)
                     .send('Bad Request: Please provide reserve');
+                return;
             } else if (!req.body.hasOwnProperty("categoryId") || !checkCategory) {
                 res.status(400)
                     .send('Bad Request: Please provide categoryId/categoryId does not exist');
+                return;
             } else if (!req.body.hasOwnProperty("endDate") || details.endDate.length === 0) {
                 res.status(400)
                     .send('Bad Request: Please provide endDate');
+                return;
             } else {
                 const titleExist = await auctions.checkAuctionTitle( details.title );
                 if (!titleExist) {
@@ -75,24 +86,29 @@ const addAuction = async (req: Request, res: Response) : Promise<void> => {
                         const result  = await auctions.add(req.body, userId, reserve);
                         res.status(201)
                             .send({auctionId: result.insertId});
+                        return;
                     } else {
                         const reserve = 1;
                         const result  = await auctions.add(req.body, userId, reserve);
                         res.status(201)
                             .send({auctionId: result.insertId});
+                        return;
                     }
                 } else {
                     res.status(400)
-                        .send('Bad Request: Auction already exist')
+                        .send('Bad Request: Auction already exist');
+                    return;
                 }
             }
         } else {
             res.status(401)
-                .send('Unauthorized')
+                .send('Unauthorized');
+            return;
         }
     } catch {
         res.status(500)
-            .send('Internal Server Error')
+            .send('Internal Server Error');
+        return;
     }
 };
 
@@ -108,49 +124,51 @@ const updateAuction = async (req: Request, res: Response) : Promise<void> => {
         if (checkAuction !== false) {
             if ( Number(userId) === checkAuction[0].sellerId) {
                 if (bidExist === null) {
-                    Console.log(1)
-                    if(req.body.title === undefined){
+                    if(req.body.title === undefined) {
                         req.body.title = checkAuction[0].title;
                     }
-                    if (req.body.description === undefined){
+                    if (req.body.description === undefined) {
                         req.body.description = checkAuction[0].description;
                     }
-                    if (req.body.description === undefined){
+                    if (req.body.description === undefined) {
                         req.body.description = checkAuction[0].description;
                     }
-                    if (req.body.endDate === undefined){
+                    if (req.body.endDate === undefined) {
                         const date = new Date(checkAuction[0].endDate)
                         req.body.endDate = date;
                     }
-                    if (req.body.reserve === undefined){
+                    if (req.body.reserve === undefined) {
                         req.body.reserve = checkAuction[0].reserve;
                     }
-                    if (req.body.categoryId === undefined){
+                    if (req.body.categoryId === undefined) {
                         req.body.categoryId = checkAuction[0].categoryId;
                     }
-                    if (req.body.image_filename === undefined){
+                    if (req.body.image_filename === undefined) {
                         req.body.image_filename = checkAuction[0].image_filename;
                     }
-                    Console.log(req.body)
-                    Console.log(2)
                     const result = await auctions.update( Number(auctionId), req.body);
                     res.status(200)
                         .json(result);
+                    return;
                 } else {
                     res.status(403)
-                        .send('Forbidden: bid has been place can not update auction')
+                        .send('Forbidden: bid has been place can not update auction');
+                    return;
                 }
             } else {
                 res.status(403)
-                    .send('Forbidden')
+                    .send('Forbidden');
+                return;
             }
         } else {
             res.status(404)
-                .send('Auction Not Found')
+                .send('Auction Not Found');
+            return;
         }
     } catch {
         res.status(500)
-            .send('Internal Server Error')
+            .send('Internal Server Error');
+        return;
     }
 };
 
@@ -160,9 +178,11 @@ const getAllCategory = async (req: Request, res: Response) : Promise<void> => {
         const result = await auctions.category();
         res.status( 200 )
             .send( result );
+        return;
     } catch( err ) {
         res.status( 500 )
             .send( `ERROR getting categories (Internal Sever Error) ${ err }` );
+        return;
     }
 };
 
@@ -182,24 +202,29 @@ const deleteAuctionById = async (req: Request, res: Response) : Promise<void> =>
                     if (bidExist === null) {
                         await auctions.deleteAuction( Number(req.params.id) );
                         res.status(200)
-                            .send('OK: Auction deleted')
+                            .send('OK: Auction deleted');
+                        return;
 
                     } else {
                         res.status(403)
-                            .send('Forbidden: bid has been place can not delete auction')
+                            .send('Forbidden: bid has been place can not delete auction');
+                        return;
                     }
                 } else {
                     res.status(403)
-                        .send('Forbidden')
+                        .send('Forbidden');
+                    return;
                 }
             } else {
                 res.status(404)
-                    .send('Auction Not Found')
+                    .send('Auction Not Found');
+                return;
             }
         }
     } catch {
         res.status(500)
             .send('Internal Server Error');
+        return;
     }
 }
 

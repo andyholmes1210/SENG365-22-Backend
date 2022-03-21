@@ -1,10 +1,10 @@
 type User = {
 
-    userid?: number,
     firstName: string,
     lastName: string,
     email: string,
     password: string,
+    currentPassword: string,
     image_filename: string
 
 }

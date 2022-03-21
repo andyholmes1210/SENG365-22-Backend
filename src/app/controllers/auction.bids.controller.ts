@@ -14,14 +14,17 @@ const getBidID = async (req: Request, res: Response) : Promise<void> => {
             if (result === null) {
                 res.status(404)
                     .json("Auction bid not found");
+                return;
             } else {
                 res.status( 200 )
                     .json( result );
+                return;
             }
         }
     } catch( err ) {
         res.status( 500 )
             .send( `ERROR getting auctions (Internal Server Error) ${ err }` );
+        return;
     }
 };
 
@@ -43,36 +46,44 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
                         if (sellerId.sellerId === Number(req.body.authenticatedUserId)) {
                             res.status(403)
                                 .send("Forbidden: Can not place bid on your own Auction");
+                            return;
                         } else {
                            if (req.body.amount < highestBid) {
                                 res.status(400)
                                     .send("Bad Request: Amount must be higher than the current bid");
+                               return;
                             } else {
                                 await auctionBid.bid( Number(req.params.id), Number(req.body.authenticatedUserId), req.body.amount, date);
                                 res.status(201)
-                                 .send("Bid Placed")
+                                 .send("Bid Placed");
+                               return;
                             }
                         }
                     } else {
                         res.status(404)
                             .send("Bad Request: Bid must be greater than the reserved price");
+                        return;
                     }
                 } else {
                     res.status(400)
                         .send("Bad Request: Auction ended");
+                    return;
                 }
             } else {
                 res.status(404)
                     .send("Auction not found");
+                return;
             }
         }
     } catch (err) {
         if (err.errno === 1062 || err.code === 'ER_DUP_ENTRY') {
             res.status(400)
                 .send('Bad Request: Bid can not be the same amount as the previous bid');
+            return;
         } else {
             res.status(500)
                 .send("Internal Server Error");
+            return;
         }
     }
 };

@@ -5,6 +5,10 @@ import {passwordHash} from '../middleware/password.hash';
 import {passwordVerify} from '../middleware/password.verify';
 import Console from "console";
 
+/**
+ *
+ * @param values
+ */
 const register = async (values: User) : Promise<ResultSetHeader> => {
     Logger.info(`Adding user to the database`);
 
@@ -16,6 +20,11 @@ const register = async (values: User) : Promise<ResultSetHeader> => {
     return result;
 };
 
+/**
+ *
+ * @param values
+ * @param token
+ */
 const login = async (values: User, token: string) : Promise<any> => {
     Logger.info(`Login user into the database`);
 
@@ -42,6 +51,10 @@ const login = async (values: User, token: string) : Promise<any> => {
     }
 };
 
+/**
+ *
+ * @param token
+ */
 const logout = async (token: string) : Promise<any> => {
     Logger.info(`Logout user from the database`);
 
@@ -82,9 +95,9 @@ const checkId = async (id: number) : Promise<any> => {
 
     const conn = await getPool().getConnection();
     const query = 'select * from user where id = ?';
-    const [ rows ] = await conn.query( query, [ id ]);
+    const [ result ] = await conn.query( query, [ id ]);
     conn.release();
-    if (rows.length === 0) {
+    if (result.length === 0) {
         return false
     } else {
         return true
@@ -97,9 +110,23 @@ const checkIdMatchToken = async (id: number, token: string) : Promise<any> => {
 
     const conn = await getPool().getConnection();
     const query = 'select * from user where id = ? and auth_token = ? ';
-    const [ rows ] = await conn.query( query, [[ id ], [ token ]]);
+    const [ result ] = await conn.query( query, [[ id ], [ token ]]);
     conn.release();
-    if (rows.length === 0) {
+    if (result.length === 0) {
+        return false
+    } else {
+        return true
+    }
+};
+
+const checkEmailExist = async (email: string) : Promise<any> => {
+    Logger.info(`Checking email exist in the database`);
+
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM user WHERE email = ?';
+    const [ result ] = await conn.query( query, [[email]]);
+    conn.release();
+    if (result.length === 0) {
         return false
     } else {
         return true
@@ -116,22 +143,40 @@ const getUserDetails = async (id: number) : Promise<any> => {
     return result;
 };
 
-const updateUserDetails = async (id: number, newPass: string, oldPass: string) : Promise<any> => {
+const getAllUserDetails = async (id: number) : Promise<any> => {
+    Logger.info(`Getting All user details from the database`);
+
+    const conn = await getPool().getConnection();
+    const query = 'SELECT * FROM user WHERE id = ?';
+    const [ result ] = await conn.query( query, [ id ]);
+    conn.release();
+    return result;
+};
+
+const updateUserDetails = async (id: number, values: User) : Promise<any> => {
     Logger.info(`Updating user details from the database`);
 
     const conn = await getPool().getConnection();
     const queryPass = 'SELECT password FROM user WHERE id = ?'
-    const [ result ] = await conn.query( queryPass, [ id ]);
-    const checkPass = await passwordVerify(oldPass, result[0].password)
+    const [ resultPass ] = await conn.query( queryPass, [ id ]);
+    const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password)
     if (checkPass) {
-        const newPassword = await passwordHash(newPass);
-        const query = 'UPDATE user SET password = ? WHERE id = ?'
-        const [ result1 ] = await conn.query( query, [[ newPassword ], [ id ]] )
-        return result1
+        const newPassword = await passwordHash(values.password)
+        const query = 'UPDATE user ' +
+            'SET email = ?, ' +
+            'first_name = ?, ' +
+            'last_name = ?, ' +
+            'image_filename = ?, ' +
+            'password = ? ' +
+            'WHERE id = ?';
+        const [ result ] = await conn.query( query, [[ values.email ], [ values.firstName ],
+            [ values.lastName ], [ values.image_filename ], [ newPassword ], [ id ]])
+        conn.release();
+        return result;
     } else {
-        return false;
+        return false
     }
 };
 
 
-export { register, login, logout, getToken, checkUserExist, getUserDetails, checkId, checkIdMatchToken, updateUserDetails }
+export { register, login, logout, getToken, checkUserExist, getUserDetails, checkId, checkIdMatchToken, updateUserDetails, getAllUserDetails, checkEmailExist }

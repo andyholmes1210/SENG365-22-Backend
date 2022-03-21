@@ -78,7 +78,7 @@ const update = async (id: number, values: Auction) : Promise<any> => {
         'category_id = ? ' +
         'WHERE id = ?';
     const [ result ] = await conn.query( query, [[values.title], [values.description], [values.endDate], [values.image_filename],
-    [values.reserve], [values.categoryId], [ id ]] );
+        [values.reserve], [values.categoryId], [ id ]] );
     conn.release();
     return result;
 

@@ -3,7 +3,6 @@ import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import {randomToken} from '../middleware/randtoken';
 import * as Console from "console";
-import {getUserDetails} from "../models/user.model";
 
 
 const registerUser = async (req: Request, res: Response) : Promise<void> => {
@@ -14,33 +13,38 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
     if (email.indexOf("@") === -1 || email.length === 0 ) {
         res.status(400)
             .send("Bad Request: Email must contain @/Can not be empty");
+        return;
     } else if (!req.body.hasOwnProperty("password") || password.length === 0) {
         res.status(400)
-            .send("Bad Request: Please provide Password")
+            .send("Bad Request: Please provide Password");
+        return;
     } else if (!req.body.hasOwnProperty("lastName") && !req.body.hasOwnProperty("firstName")) {
         res.status(400).send("Bad Request: Please provide firstName and lastName field");
-        return
+        return;
     } else if (!req.body.hasOwnProperty("firstName") || req.body.firstName.length === 0) {
         res.status(400).send("Bad Request: Please provide firstName");
-        return
+        return;
     } else if (!req.body.hasOwnProperty("lastName") || req.body.lastName.length === 0) {
         res.status(400).send("Bad Request: Please provide lastName");
-        return
+        return;
     } else {
             try {
                 const userid = await users.register(req.body)
                 Logger.http(`User ${userid.insertId} is successfully added`);
                 res.status(201)
                     .send({userId: userid.insertId});
+                return;
             } catch (err) {
                 if (err.errno === 1062 || err.code === 'ER_DUP_ENTRY')
                 {
                     res.status(400)
                         .send('Bad Request: Email already in use, please try again');
+                    return;
 
                 } else {
                     res.status(500)
                         .send('Internal Server Error');
+                    return;
                 }
             }
     }
@@ -57,26 +61,31 @@ const loginUser = async (req: Request, res: Response) : Promise<void> => {
         if (tokenExist[0].auth_token !== null) {
             res.status(400)
                 .send("Bad Request: Already login");
+            return;
         } else {
             const user = await users.login(req.body, token);
             if (user === false) {
                 res.status(400)
                     .send("Bad Request: Incorrect password");
+                return;
 
             } else if (user.length > 0) {
                 res.header('X-Authorization', token);
                 res.statusMessage = 'Login Successful';
                 res.status(200)
                     .send({userId: user[0].id, token});
+                return;
 
             } else {
                 res.status(500)
                     .send('Internal Server Error');
+                return;
             }
         }
     } else {
         res.status(400)
-            .send("Bad Request: Need to register first")
+            .send("Bad Request: Need to register first");
+        return;
     }
 };
 
@@ -90,19 +99,23 @@ const logoutUser = async (req: Request, res: Response) : Promise<void> => {
             if (token === JSON.stringify(null)) {
                 res.status(400)
                     .send('Bad Request: You need to login to logout');
+                return;
             } else {
                 await users.logout(token);
                 res.header('X-Authorization', null);
                 res.status(200)
                     .send('Logout Successful');
+                return;
             }
         } else {
             res.status(401)
                 .send('Unauthorized');
+            return;
         }
     } catch {
         res.status(500)
-            .send('Internal Server Error')
+            .send('Internal Server Error');
+        return;
     }
 };
 
@@ -124,58 +137,93 @@ const getDetails = async (req: Request, res: Response) : Promise<void> => {
                         lastName: userDetails[0].last_name,
                         email: userDetails[0].email
                     })
+                return;
             } else {
                 res.status(200)
                     .send({
                         firstName: userDetails[0].first_name,
                         lastName: userDetails[0].last_name,
                     })
+                return;
             }
         } else {
             res.status(404)
-                .json("User Not Found")
+                .json("User Not Found");
+            return;
         }
     } catch {
         res.status(500)
-            .send('Internal Server Error')
+            .send('Internal Server Error');
+        return;
     }
 };
 
 const updateDetails = async (req: Request, res: Response) : Promise<void> => {
-
     const id = req.params.id
     const token = req.header('X-Authorization');
     const authPass = await users.checkIdMatchToken( Number(id), token);
+    const userDetails = await users.getAllUserDetails( Number(id) )
 
     try {
         if (authPass) {
-            if (!(req.body.hasOwnProperty("password")) && (req.body.hasOwnProperty("currentPassword"))) {
-                res.status(400)
-                    .send('Bad Request: Please add in the password and currentPassword field');
-            } else {
-                const newPass = req.body.password;
-                const oldPass = req.body.currentPassword;
-                    if (newPass.length === 0) {
-                        res.status(400)
-                            .send('Password content is empty');
+            if (req.body.hasOwnProperty("currentPassword")) {
+                if (!(req.body.firstName === undefined && req.body.lastName === undefined && req.body.email === undefined && req.body.password === undefined)) {
+                    if (req.body.firstName === undefined) {
+                        req.body.firstName = userDetails[0].first_name;
+                    }
+                    if (req.body.lastName === undefined) {
+                        req.body.lastName = userDetails[0].last_name;
+                    }
+
+                    if (req.body.email === undefined) {
+                        req.body.email = userDetails[0].email;
                     } else {
-                        const result = await users.updateUserDetails( Number(id), newPass, oldPass);
-                        if (result === false) {
-                            res.status(400)
-                                .send('Bad Request: currentPassword does not match your current password')
+                        const email = await users.checkEmailExist( req.body.email );
+                        if (!email) {
+                            if (req.body.email.indexOf("@") === -1) {
+                                res.status(400)
+                                    .send('Bad Request: Email must contain @');
+                                return;
+                            }
                         } else {
-                            res.status(200)
-                                .send('OK: User password updated')
+                            res.status(400)
+                                .send('Bad Request: Email already in used');
+                            return;
                         }
                     }
+
+                    if (req.body.password === undefined) {
+                        req.body.password = req.body.currentPassword
+                    }
+                    const result = await users.updateUserDetails( Number(id), req.body);
+                    if (result === false) {
+                        res.status(400)
+                            .send('Bad Request: currentPassword does not match your current password');
+                        return;
+                    } else {
+                        res.status(200)
+                            .send('OK: Updated');
+                        return;
+                    }
+                } else {
+                    res.status(400)
+                        .send('Bad Request: Details you wish to change can not be empty');
+                    return;
                 }
+            } else {
+                res.status(400)
+                    .send('Bad Request: Please enter your currentPassword to change details');
+                return;
+            }
         } else {
           res.status(403)
-              .send("Forbidden: Can not update another users details")
+              .send("Forbidden: Can not update another users details");
+            return;
         }
     } catch {
         res.status(500)
-            .send('Internal Server Error')
+            .send('Internal Server Error');
+        return;
 
     }
 };

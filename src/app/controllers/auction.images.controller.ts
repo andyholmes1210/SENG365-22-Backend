@@ -16,18 +16,22 @@ const getAuctionImage = async (req: Request, res: Response) : Promise<void> => {
         if (result === false) {
             res.status(404)
                 .send('Not Found');
+            return;
         } else {
             res.contentType( result.type );
             res.status( 200 )
                 .send( result.photo );
+            return;
         }
     } catch( err ) {
         if (err.errno === -2 || err.code === 'ENOENT') {
             res.status(404)
                 .send('Not Found');
+            return;
         } else {
             res.status(500)
                 .send(`ERROR reading event (Internal Sever Error) ${id}: ${ err }`);
+            return;
         }
     }
 };
@@ -55,27 +59,33 @@ const updateAuctionImage = async (req: Request, res: Response) : Promise<void> =
                     if (existImage) {
                         await auctionImage.updateImageA( Number(auctionId), filename);
                         res.status(200)
-                            .send("OK")
+                            .send("OK");
+                        return;
                     } else {
                         await auctionImage.updateImageA( Number(auctionId), filename);
                         res.status(201)
-                            .send("Created")
+                            .send("Created");
+                        return;
                     }
                 } else {
                     res.status(400)
                         .send('Bad request: image must be image/jpeg, image/png, image/gif type');
+                    return;
                 }
             } else {
                 res.status(400)
                     .send('Bad Request: empty image');
+                return;
             }
         } else {
             res.status(403)
                 .json('Forbidden');
+            return;
         }
     } else {
         res.status(404)
             .json("Auction Not Found");
+        return;
     }
 };
 
