@@ -11,20 +11,20 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
     const password =  req.body.password;
     const email = req.body.email;
 
-    if (email.indexOf("@") === -1) {
+    if (email.indexOf("@") === -1 || email.length === 0 ) {
         res.status(400)
-            .send("Bad Request: Email must contain @");
-    } else if (password.length === 0) {
+            .send("Bad Request: Email must contain @/Can not be empty");
+    } else if (!req.body.hasOwnProperty("password") || password.length === 0) {
         res.status(400)
-            .send("Bad Request: Password cannot be empty")
+            .send("Bad Request: Please provide Password")
     } else if (!req.body.hasOwnProperty("lastName") && !req.body.hasOwnProperty("firstName")) {
         res.status(400).send("Bad Request: Please provide firstName and lastName field");
         return
-    } else if (!req.body.hasOwnProperty("firstName")) {
-        res.status(400).send("Bad Request: Please provide firstName field");
+    } else if (!req.body.hasOwnProperty("firstName") || req.body.firstName.length === 0) {
+        res.status(400).send("Bad Request: Please provide firstName");
         return
-    } else if (!req.body.hasOwnProperty("lastName")) {
-        res.status(400).send("Bad Request: Please provide lastName field");
+    } else if (!req.body.hasOwnProperty("lastName") || req.body.lastName.length === 0) {
+        res.status(400).send("Bad Request: Please provide lastName");
         return
     } else {
             try {
@@ -117,7 +117,6 @@ const getDetails = async (req: Request, res: Response) : Promise<void> => {
     try{
         if (userPass) {
             const userDetails = await users.getUserDetails( Number(id) );
-            Console.log(userDetails)
             if (authPass) {
                 res.status(200)
                     .send({

@@ -1,12 +1,10 @@
 type Auction = {
 
-    auctionId: number,
     title: string,
-    description?: string,
-    endDate: string,
-    image_filename?: string,
+    description: string,
     reserve: number,
+    categoryId: number,
     sellerId: number,
-    categories: [number]
-
+    endDate: Date,
+    image_filename?: string|null
 }

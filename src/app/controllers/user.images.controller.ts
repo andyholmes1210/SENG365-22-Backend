@@ -4,7 +4,7 @@ import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import {getImageExtension} from "../middleware/imageextention";
 import Console from "console";
-import {storeImageU, updateImageU} from "../models/user.images.model";
+
 
 
 const getUserImage = async (req: Request, res: Response) : Promise<void> => {
@@ -43,9 +43,7 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
     if (user) {
         if (loginId === userId) {
             const mimeType = req.header('Content-Type');
-
             const fileExt: any = await getImageExtension(mimeType);
-
             if (fileExt !== null){
                 if (req.body.length !== undefined) {
                     const existImage = await usersImage.getImageU( Number(userId) );

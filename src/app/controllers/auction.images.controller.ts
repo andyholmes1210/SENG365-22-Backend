@@ -1,5 +1,4 @@
 import * as auctionImage from "../models/auction.images.model";
-import * as usersImage from "../models/user.images.model";
 import * as auction from "../models/auction.model"
 import Logger from "../../config/logger";
 import {Request, Response} from "express";

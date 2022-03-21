@@ -122,10 +122,7 @@ const updateUserDetails = async (id: number, newPass: string, oldPass: string) :
     const conn = await getPool().getConnection();
     const queryPass = 'SELECT password FROM user WHERE id = ?'
     const [ result ] = await conn.query( queryPass, [ id ]);
-    Console.log(result[0].password)
-    Console.log(oldPass)
     const checkPass = await passwordVerify(oldPass, result[0].password)
-    Console.log(checkPass)
     if (checkPass) {
         const newPassword = await passwordHash(newPass);
         const query = 'UPDATE user SET password = ? WHERE id = ?'
