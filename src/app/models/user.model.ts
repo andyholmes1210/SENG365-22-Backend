@@ -155,27 +155,83 @@ const getAllUserDetails = async (id: number) : Promise<any> => {
 
 const updateUserDetails = async (id: number, values: User) : Promise<any> => {
     Logger.info(`Updating user details from the database`);
-
     const conn = await getPool().getConnection();
-    const queryPass = 'SELECT password FROM user WHERE id = ?'
-    const [ resultPass ] = await conn.query( queryPass, [ id ]);
-    const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password)
-    if (checkPass) {
-        const newPassword = await passwordHash(values.password)
-        const query = 'UPDATE user ' +
-            'SET email = ?, ' +
-            'first_name = ?, ' +
-            'last_name = ?, ' +
-            'image_filename = ?, ' +
-            'password = ? ' +
-            'WHERE id = ?';
-        const [ result ] = await conn.query( query, [[ values.email ], [ values.firstName ],
-            [ values.lastName ], [ values.image_filename ], [ newPassword ], [ id ]])
-        conn.release();
-        return result;
+    const userExist = await checkId(id);
+
+    if (userExist) {
+        if (values.email !== undefined || values.firstName !== undefined || values.lastName !== undefined) {
+            if ((values.password === undefined && values.currentPassword !== undefined) || (values.password !== undefined && values.currentPassword === undefined)) {
+                return 0
+            } else {
+                if (values.password === "") {
+                    return 0;
+                } else if (values.firstName !== undefined) {
+                    const queryFirstName = 'UPDATE user SET first_name = ? WHERE id = ?'
+                    await conn.query(queryFirstName, [[values.firstName], [id]])
+                }
+                conn.release()
+                if (values.lastName !== undefined) {
+                    const queryLastname = 'UPDATE user SET last_name = ? WHERE id = ?'
+                    await conn.query(queryLastname, [[values.lastName], [id]])
+                }
+                conn.release()
+                if (values.email !== undefined) {
+                    const queryEmail = 'UPDATE user SET email = ? WHERE id = ?'
+                    await conn.query(queryEmail, [[values.email], [id]])
+                }
+                conn.release()
+                const queryPass = 'SELECT password FROM user WHERE id = ?'
+                const [resultPass] = await conn.query(queryPass, [id]);
+                const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password)
+                if (checkPass) {
+                    const newPassword = await passwordHash(values.password)
+                    const query = 'UPDATE user SET password = ? WHERE id = ?';
+                    await conn.query(query, [[newPassword], [id]])
+                    conn.release()
+                    return true;
+                } else {
+                    return 2;
+                }
+
+            }
+        } else {
+            if ((values.password === undefined && values.currentPassword === undefined ) || (values.password === undefined && values.currentPassword !== undefined) || (values.password !== undefined && values.currentPassword === undefined) || values.password === "") {
+                conn.release();
+                return 0;
+            } else {
+                if (values.firstName !== undefined) {
+                    const queryFirstName = 'UPDATE user SET first_name = ? WHERE id = ?'
+                    await conn.query(queryFirstName, [[values.firstName], [ id ]])
+                }
+                conn.release()
+                if (values.lastName !== undefined) {
+                    const queryLastname = 'UPDATE user SET last_name = ? WHERE id = ?'
+                    await conn.query(queryLastname, [[values.lastName], [ id ]])
+                }
+                conn.release()
+                if (values.email !== undefined) {
+                    const queryEmail = 'UPDATE user SET email = ? WHERE id = ?'
+                    await conn.query(queryEmail, [[values.email], [ id ]])
+                }
+                conn.release()
+                const queryPass = 'SELECT password FROM user WHERE id = ?'
+                const [resultPass] = await conn.query(queryPass, [id]);
+                const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password)
+                if (checkPass) {
+                    const newPassword = await passwordHash(values.password)
+                    const query = 'UPDATE user SET password = ? WHERE id = ?';
+                    await conn.query(query, [[newPassword], [id]])
+                    return true;
+                } else {
+                    return 2;
+                }
+            }
+        }
     } else {
+        conn.release();
         return false
     }
+
 };
 
 

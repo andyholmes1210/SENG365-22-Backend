@@ -166,60 +166,59 @@ const updateDetails = async (req: Request, res: Response) : Promise<void> => {
 
     try {
         if (authPass) {
-            if (req.body.hasOwnProperty("currentPassword")) {
-                if (!(req.body.firstName === undefined && req.body.lastName === undefined && req.body.email === undefined && req.body.password === undefined)) {
-                    if (req.body.firstName === undefined) {
-                        req.body.firstName = userDetails[0].first_name;
-                    }
-                    if (req.body.lastName === undefined) {
-                        req.body.lastName = userDetails[0].last_name;
-                    }
+            if (!(req.body.firstName === undefined && req.body.lastName === undefined && req.body.email === undefined && req.body.password === undefined && req.body.currentPassword === undefined)) {
 
-                    if (req.body.email === undefined) {
-                        req.body.email = userDetails[0].email;
-                    } else {
-                        const email = await users.checkEmailExist( req.body.email );
-                        if (!email) {
-                            if (req.body.email.indexOf("@") === -1) {
-                                res.status(400)
-                                    .send('Bad Request: Email must contain @');
-                                return;
-                            }
-                        } else {
+
+                if (req.body.email !== undefined) {
+                    const email = await users.checkEmailExist( req.body.email );
+                    if (!email) {
+                        if (req.body.email.indexOf("@") === -1) {
                             res.status(400)
-                                .send('Bad Request: Email already in used');
+                                .send('Bad Request: Email must contain @');
                             return;
+                        } else {
+                            const result = await users.updateUserDetails( Number(id), req.body)
+                            if (result) {
+                                res.status(200)
+                                    .send('OK: Updated')
+                            } else if (result === 0) {
+                                res.status(400)
+                                    .send('Bad Request: Both password/currentPassword have to be provided ')
+                            } else if (result === 1){
+                                res.status(400)
+                                    .send('Bad Request: password field can not be empty')
+                            } else {
+                                res.status(404)
+                                    .send('Not Found')
+                            }
                         }
-                    }
-
-                    if (req.body.password === undefined) {
-                        req.body.password = req.body.currentPassword
-                    }
-                    const result = await users.updateUserDetails( Number(id), req.body);
-                    if (result === false) {
-                        res.status(400)
-                            .send('Bad Request: currentPassword does not match your current password');
-                        return;
                     } else {
-                        res.status(200)
-                            .send('OK: Updated');
+                        res.status(400)
+                            .send('Bad Request: Email already in used');
                         return;
                     }
                 } else {
-                    res.status(400)
-                        .send('Bad Request: Details you wish to change can not be empty');
-                    return;
+                    const result = await users.updateUserDetails( Number(id), req.body)
+                    if (result) {
+                        res.status(200)
+                            .send('OK: Updated')
+                    } else if (result === 0) {
+                        res.status(400)
+                            .send('Bad Request: Both password/currentPassword have to be provided ')
+                    } else if (result === 1){
+                        res.status(400)
+                            .send('Bad Request: password field can not be empty')
+                    } else {
+                        res.status(404)
+                            .send('Not Found')
+                    }
                 }
-            } else {
-                res.status(400)
-                    .send('Bad Request: Please enter your currentPassword to change details');
-                return;
             }
         } else {
-          res.status(403)
-              .send("Forbidden: Can not update another users details");
+            res.status(403)
+                .send("Forbidden: Can not update another users details");
             return;
-        }
+            }
     } catch {
         res.status(500)
             .send('Internal Server Error');
