@@ -4,29 +4,16 @@ import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import Console from "console";
 
+
 /**
  * WIP
  * @param req
  * @param res
  */
-const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
-    Logger.http(`Request to get All Auction...`)
-    try {
-        if (req.body !== 0){
-            const result = await auctions.getAll();
-            res.status( 200 ).send( result );
-            return;
-        } else {
-            res.status(400)
-                .send('Bad Request');
-            return;
-        }
-    } catch( err ) {
-        res.status( 500 )
-            .send( `ERROR getting auctions (Internal Sever Error) ${ err }` );
-        return;
-    }
-};
+// const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
+//     Logger.http(`Request to get All Auction...`)
+//
+// };
 
 /**
  * Function to get 1 Auction by id from the Request Params
@@ -49,11 +36,10 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
             return;
         }
     } catch( err ) {
-        res.status( 500 )
-            .send( `ERROR getting auction (Internal Sever Error) ${ err }` );
-        return;
+            res.status( 500 )
+                .send( `ERROR getting auction (Internal Sever Error) ${ err }` );
+            return;
     }
-
 };
 
 /**
@@ -257,4 +243,4 @@ const deleteAuctionById = async (req: Request, res: Response) : Promise<void> =>
     }
 };
 
-export { getAllAuction, getOneAuction, getAllCategory, deleteAuctionById, addAuction, updateAuction }
+export { getOneAuction, getAllCategory, deleteAuctionById, addAuction, updateAuction }

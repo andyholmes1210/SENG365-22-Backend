@@ -5,7 +5,7 @@ import {rootUrl} from "./base.routes";
 
 module.exports = ( app: Express ) => {
     app.route( rootUrl + '/auctions' )
-        .get( auctions.getAllAuction )
+        // .get( auctions.getAllAuction )
         .post( authenticate.loginRequired, auctions.addAuction);
     app.route( rootUrl + '/auctions/categories')
         .get( auctions.getAllCategory );

@@ -2,6 +2,7 @@ import * as auctionBid from '../models/auction.bids.model';
 import * as auction from '../models/auction.model'
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
+import * as Console from "console";
 
 /**
  * Function to get the all bid by using the id from the Request params
@@ -41,13 +42,12 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Create a Auction bid by ID...`);
     const date = new Date();
     const token = req.header('X-Authorization');
-    const auctionExist = await auction.getOne(Number(req.params.id));
-    const auctionDate = await auction.getAuctionDate( Number(req.params.id) );
-
 
     try {
+        const auctionExist = await auction.getOne(Number(req.params.id));
+        const auctionDate = await auction.getAuctionDate( Number(req.params.id) );
         if (token) {
-            if (auctionExist !== null) {
+            if (auctionExist) {
                 if (date < auctionDate) {
                     if (req.body.amount > auctionExist[0].reserve) {
                     const highestBid: any = auctionExist[0].amount;
@@ -88,6 +88,10 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
         if (err.errno === 1062 || err.code === 'ER_DUP_ENTRY') {
             res.status(400)
                 .send('Bad Request: Bid can not be the same amount as the previous bid');
+            return;
+        } else if (err.errno === 1054 || err.code === 'ER_BAD_FIELD_ERROR') {
+            res.status(404)
+                .send('Not Found')
             return;
         } else {
             res.status(500)

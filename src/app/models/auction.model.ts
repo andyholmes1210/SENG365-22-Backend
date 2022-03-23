@@ -1,17 +1,163 @@
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 import {ResultSetHeader} from "mysql2";
+import {ParsedQs} from "qs";
 
 /**
  * WIP
  */
-const getAll = async () : Promise<Auction[]> => {
+const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds: string | string[] | ParsedQs | ParsedQs[], startIndex: string | string[] | ParsedQs | ParsedQs[], count: string | string[] | ParsedQs | ParsedQs[], sellerId: string | string[] | ParsedQs | ParsedQs[], bidderId: string | string[] | ParsedQs | ParsedQs[], sortBy: string | string[] | ParsedQs | ParsedQs[]) : Promise<Auction[]> => {
     Logger.info(`Getting all Auction from the database`);
     const conn = await getPool().getConnection();
-    const query = 'SELECT * FROM auction';
-    const [ result ] = await conn.query( query );
-    conn.release();
-    return result;
+    if(q === undefined && categoryIds === undefined && startIndex === undefined && count === undefined && sellerId === undefined && bidderId === undefined && sortBy === undefined) {
+        const query = 'SELECT ' +
+            'auction.id as auctionId, ' +
+            'auction.title as title, ' +
+            'auction.reserve as reserve, ' +
+            'auction.seller_id as sellerId, ' +
+            'auction.category_id as categoryId, ' +
+            'user.first_name as sellerFirstName, ' +
+            'user.last_name as sellerLastName, ' +
+            'auction.end_date as endDate, ' +
+            'COUNT(auction_bid.auction_id) AS numBids, ' +
+            'COALESCE(MAX(auction_bid.amount), 0) AS highestBid ' +
+            'FROM auction ' +
+            'JOIN user ON auction.seller_id = user.id ' +
+            'JOIN category ON auction.category_id = category.id ' +
+            'LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ' +
+            'GROUP BY auction.id ' +
+            'ORDER BY auction.end_date ASC';
+        const [ result ] = await conn.query( query );
+        conn.release();
+        return result;
+    } else {
+        let index = "";
+        let countNum = "";
+        let sort = "";
+        const result: any[] = [];
+        const counts: any[] = [];
+
+        if (q !== undefined) {
+            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
+            const [ result ] = await conn.query( queryQ, [ q ] );
+            for (let i=0;i<result.length;i++){
+                result.push(result[i].id);
+            }
+        }
+        if (categoryIds !== undefined) {
+            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
+            const [result] = await conn.query(queryQ, [ categoryIds ]);
+            for (let i = 0; i < result.length; i++) {
+                result.push(result[i].id);
+            }
+        }
+        if (sellerId !== undefined) {
+            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
+            const [result] = await conn.query(queryQ, [ sellerId ]);
+            for (let i = 0; i < result.length; i++) {
+                result.push(result[i].id);
+            }
+        }
+        if (bidderId !== undefined) {
+            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
+            const [result] = await conn.query(queryQ, [ bidderId ]);
+            for (let i = 0; i < result.length; i++) {
+                result.push(result[i].id);
+            }
+        }
+        for (const i of result) {
+            counts[i] = counts[i]?counts[i] + 1 : 1;
+        }
+        const map = new Map();
+        for (const i of result) {
+            map.set(i, counts[i]);
+        }
+        const maxList = [];
+        for (const i of map.values()){
+            maxList.push(i);
+        }
+        const maxValue = maxList.reduce(function(a, b){return Math.max(a, b)},-Infinity);
+        const resultF = [];
+        for (const [key, value] of map.entries()) {
+            if (value === maxValue){
+                resultF.push(key);
+            }
+        }
+        if (startIndex !== undefined) {
+            index = ` offset ${startIndex}`;
+        }
+        if (count !== undefined) {
+            countNum = ` limit ${count}`;
+        }
+        if (sortBy !== undefined) {
+            if (sortBy === 'ALPHABETICAL_ASC') {
+                sort = ` ORDER BY auction.title ASC`
+            }
+            if (sortBy === 'ALPHABETICAL_DESC') {
+                sort = ` ORDER BY auction.title DESC`
+            }
+            if (sortBy === 'CLOSING_SOON') {
+                sort = ` ORDER BY auction.end_date ASC`
+            }
+            if (sortBy === 'CLOSING_LAST') {
+                sort = ` ORDER BY auction.end_date DESC`
+            }
+            if (sortBy === 'BIDS_ASC') {
+                sort = ` ORDER BY auction_bid.amount ASC`
+            }
+            if (sortBy === 'BIDS_DESC') {
+                sort = ` ORDER BY auction_bid.amount DESC`
+            }
+            if (sortBy === 'RESERVE_ASC') {
+                sort = ` ORDER BY auction.reserve ASC`
+            }
+            if (sortBy === 'RESERVE_DESC') {
+                sort = ` ORDER BY auction.reserve DESC`
+            }
+            const query = `SELECT`  +
+                `auction.id as auctionId, ` +
+                `auction.title as title, ` +
+                `auction.reserve as reserve, ` +
+                `auction.seller_id as sellerId, ` +
+                `auction.category_id as categoryId, ` +
+                `user.first_name as sellerFirstName, ` +
+                `user.last_name as sellerLastName, ` +
+                `auction.end_date as endDate, ` +
+                `COUNT(auction_bid.auction_id) AS numBids, ` +
+                `COALESCE(MAX(auction_bid.amount), 0) AS highestBid ` +
+                `FROM auction ` +
+                `JOIN user ON auction.seller_id = user.id ` +
+                `JOIN category ON auction.category_id = category.id ` +
+                `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                `WHERE auction.id IN (${resultF}) ` +
+                `GROUP BY auction.id` + sort + countNum + index;
+            const [ result ] = await conn.query( query );
+            conn.release();
+            return result;
+        } else {
+            const query = `SELECT`  +
+                `auction.id as auctionId, ` +
+                `auction.title as title, ` +
+                `auction.reserve as reserve, ` +
+                `auction.seller_id as sellerId, ` +
+                `auction.category_id as categoryId, ` +
+                `user.first_name as sellerFirstName, ` +
+                `user.last_name as sellerLastName, ` +
+                `auction.end_date as endDate, ` +
+                `COUNT(auction_bid.auction_id) AS numBids, ` +
+                `COALESCE(MAX(auction_bid.amount), 0) AS highestBid ` +
+                `FROM auction ` +
+                `JOIN user ON auction.seller_id = user.id ` +
+                `JOIN category ON auction.category_id = category.id ` +
+                `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                `WHERE auction.id IN (${resultF}) ` +
+                `GROUP BY auction.id ` +
+                `ORDER BY auction.end_date ASC ` + countNum + index ;
+            const [ result ] = await conn.query( query );
+            conn.release();
+            return result;
+        }
+    }
 };
 
 /**
@@ -164,4 +310,4 @@ const getCategoryById = async (id: number) : Promise<any> => {
 };
 
 
-export { getAll, getOne, category, getAuctionDate, deleteAuction, add, checkAuctionTitle, getCategoryById, update }
+export { getOne, category, getAuctionDate, deleteAuction, add, checkAuctionTitle, getCategoryById, update }
