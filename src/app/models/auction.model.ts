@@ -2,6 +2,9 @@ import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 import {ResultSetHeader} from "mysql2";
 
+/**
+ * WIP
+ */
 const getAll = async () : Promise<Auction[]> => {
     Logger.info(`Getting all Auction from the database`);
     const conn = await getPool().getConnection();

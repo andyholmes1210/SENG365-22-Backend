@@ -4,7 +4,11 @@ import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import Console from "console";
 
-
+/**
+ * WIP
+ * @param req
+ * @param res
+ */
 const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Auction...`)
     try {
