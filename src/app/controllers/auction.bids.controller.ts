@@ -2,8 +2,12 @@ import * as auctionBid from '../models/auction.bids.model';
 import * as auction from '../models/auction.model'
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
-import Console from "console";
 
+/**
+ * Function to get the all bid by using the id from the Request params
+ * @param req
+ * @param res
+ */
 const getBidID = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Auction bids by ID...`);
     const id = req.params.id;
@@ -28,6 +32,11 @@ const getBidID = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to create bid using the Request body as parameters and insert into auction_bids table
+ * @param req
+ * @param res
+ */
 const postBid = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Create a Auction bid by ID...`);
     const date = new Date();

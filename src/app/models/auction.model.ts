@@ -1,7 +1,6 @@
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
 import {ResultSetHeader} from "mysql2";
-import Console from "console";
 
 const getAll = async () : Promise<Auction[]> => {
     Logger.info(`Getting all Auction from the database`);
@@ -12,6 +11,10 @@ const getAll = async () : Promise<Auction[]> => {
     return result;
 };
 
+/**
+ * SQL Function that get one auction using the auction id
+ * @param id: number
+ */
 const getOne = async (id: number) : Promise<any> => {
     Logger.info(`Getting one Auction from the database`);
     const conn = await getPool().getConnection();
@@ -42,16 +45,25 @@ const getOne = async (id: number) : Promise<any> => {
 
 };
 
+/**
+ * SQL Function that add a new auction into the database
+ * @param values: Auction types
+ * @param id: number
+ * @param reserve: number
+ */
 const add = async(values: Auction, id: number, reserve: number) : Promise<ResultSetHeader> => {
     Logger.info(`Adding auction into the database`);
     const conn = await getPool().getConnection();
     const query = 'INSERT INTO auction (title, description, end_date, image_filename, reserve, seller_id, category_id) VALUES ( ? )';
     const [ result ] = await conn.query( query ,[[[values.title], [values.description], [values.endDate],
-        [values.image_filename], [reserve], [id], [values.categoryId]]])
+        [values.image_filename], [reserve], [id], [values.categoryId]]]);
     conn.release();
     return result;
 };
 
+/**
+ * SQL Function that get all the category
+ */
 const category = async () : Promise<Category[]> => {
     Logger.info(`Getting all category from the database`);
     const conn = await getPool().getConnection();
@@ -65,6 +77,11 @@ const category = async () : Promise<Category[]> => {
     return result;
 };
 
+/**
+ * SQL Function that update the auction details
+ * @param id: number
+ * @param values: Auction types
+ */
 const update = async (id: number, values: Auction) : Promise<any> => {
     Logger.info(`Updating auction from the database`);
 
@@ -82,8 +99,12 @@ const update = async (id: number, values: Auction) : Promise<any> => {
     conn.release();
     return result;
 
-}
+};
 
+/**
+ * SQL Function that delete auction from database by id
+ * @param id: number
+ */
 const deleteAuction = async (id: number) : Promise<any> => {
     Logger.info(`Deleting auction from the database`);
     const conn = await getPool().getConnection();
@@ -92,6 +113,10 @@ const deleteAuction = async (id: number) : Promise<any> => {
     conn.release();
 };
 
+/**
+ * SQL Function that check if the Auction title exist in the database (duplication)
+ * @param title
+ */
 const checkAuctionTitle = async (title: string) : Promise<any> => {
     Logger.info(`Checking auction title in the database`);
     const conn = await getPool().getConnection();
@@ -99,12 +124,16 @@ const checkAuctionTitle = async (title: string) : Promise<any> => {
     const [ result ] = await conn.query( query, [ title ]);
     conn.release();
     if (result.length === 0) {
-        return false
+        return false;
     } else
         return true;
 
 };
 
+/**
+ * SQL Function that get the auction date using id
+ * @param id
+ */
 const getAuctionDate = async (id: number) : Promise<any> => {
     Logger.info(`Getting auction date from the database`);
     const conn = await getPool().getConnection();
@@ -114,15 +143,19 @@ const getAuctionDate = async (id: number) : Promise<any> => {
     return result;
 };
 
+/**
+ * SQL Function that get category name from the database using id
+ * @param id
+ */
 const getCategoryById = async (id: number) : Promise<any> => {
-    Logger.info(`Getting category id from the database`);
+    Logger.info(`Getting category name from the database`);
 
     const conn = await getPool().getConnection();
     const query = 'SELECT name FROM category WHERE id = ?'
     const [ result ] = await conn.query( query, [ id ])
     conn.release();
     if (result.length === 0) {
-        return false
+        return false;
     } else
         return true;
 };

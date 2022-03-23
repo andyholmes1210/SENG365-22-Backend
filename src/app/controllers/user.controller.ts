@@ -2,9 +2,12 @@ import * as users from "../models/user.model";
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import {randomToken} from '../middleware/randtoken';
-import * as Console from "console";
 
-
+/**
+ * Function to register/add a new user
+ * @param req
+ * @param res
+ */
 const registerUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to create a new user...');
     const password =  req.body.password;
@@ -50,6 +53,11 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to log in existing user
+ * @param req
+ * @param res
+ */
 const loginUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to login a user...');
 
@@ -158,17 +166,19 @@ const getDetails = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to update user details
+ * @param req
+ * @param res
+ */
 const updateDetails = async (req: Request, res: Response) : Promise<void> => {
     const id = req.params.id
     const token = req.header('X-Authorization');
     const authPass = await users.checkIdMatchToken( Number(id), token);
-    const userDetails = await users.getAllUserDetails( Number(id) )
 
     try {
         if (authPass) {
             if (!(req.body.firstName === undefined && req.body.lastName === undefined && req.body.email === undefined && req.body.password === undefined && req.body.currentPassword === undefined)) {
-
-
                 if (req.body.email !== undefined) {
                     const email = await users.checkEmailExist( req.body.email );
                     if (!email) {
@@ -181,15 +191,19 @@ const updateDetails = async (req: Request, res: Response) : Promise<void> => {
                             if (result) {
                                 res.status(200)
                                     .send('OK: Updated')
+                                return;
                             } else if (result === 0) {
                                 res.status(400)
                                     .send('Bad Request: Both password/currentPassword have to be provided ')
+                                return;
                             } else if (result === 1){
                                 res.status(400)
                                     .send('Bad Request: password field can not be empty')
+                                return;
                             } else {
                                 res.status(404)
                                     .send('Not Found')
+                                return;
                             }
                         }
                     } else {
@@ -202,15 +216,19 @@ const updateDetails = async (req: Request, res: Response) : Promise<void> => {
                     if (result) {
                         res.status(200)
                             .send('OK: Updated')
+                        return;
                     } else if (result === 0) {
                         res.status(400)
                             .send('Bad Request: Both password/currentPassword have to be provided ')
+                        return;
                     } else if (result === 1){
                         res.status(400)
                             .send('Bad Request: password field can not be empty')
+                        return;
                     } else {
                         res.status(404)
                             .send('Not Found')
+                        return;
                     }
                 }
             }

@@ -2,12 +2,13 @@ import * as auctionImage from "../models/auction.images.model";
 import * as auction from "../models/auction.model"
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
-import Console from "console";
 import {getImageExtension} from "../middleware/imageextention";
 
-
-
-
+/**
+ * Function to get the Auction Image
+ * @param req
+ * @param res
+ */
 const getAuctionImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get the auction image...'`)
     const id = req.params.id;
@@ -36,6 +37,11 @@ const getAuctionImage = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to update the Auction Image
+ * @param req
+ * @param res
+ */
 const updateAuctionImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to update auction image...'`);
 

@@ -1,6 +1,12 @@
 import {getPool} from "../../config/db";
 import {Request, Response, NextFunction} from "express";
 
+/**
+ * Checking whether the user is logged in before they request to do tasks.
+ * @param req
+ * @param res
+ * @param next
+ */
 const loginRequired = async (req : Request, res : Response, next:NextFunction) : Promise<void> => {
     const token = req.header('X-Authorization');
 
@@ -22,6 +28,10 @@ const loginRequired = async (req : Request, res : Response, next:NextFunction) :
     }
 };
 
+/**
+ * SQL Function getting the user id from the database by using auth_token
+ * @param values: string
+ */
 const findUserIdByToken = async  (values: string) : Promise<void> => {
 
     const conn = await getPool().getConnection();

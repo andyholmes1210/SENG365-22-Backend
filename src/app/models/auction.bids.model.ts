@@ -1,8 +1,10 @@
 import { getPool } from "../../config/db";
 import Logger from "../../config/logger";
-import Console from "console";
 
-
+/**
+ * SQL Function that gets all the bid by bid id
+ * @param id: number
+ */
 const getBid = async (id: number) : Promise<any> => {
     Logger.info(`Getting All bid by ID from the database`);
     const conn = await getPool().getConnection();
@@ -17,15 +19,22 @@ const getBid = async (id: number) : Promise<any> => {
         'INNER JOIN user ON auction_bid.user_id = user.id ' +
         'WHERE auction_bid.auction_id = ? ' +
         'ORDER BY auction_bid.amount DESC;';
-    const [rows] = await conn.query(query, [ id ]);
+    const [ result ] = await conn.query(query, [ id ]);
     conn.release();
-    if (rows.length === 0) {
+    if (result.length === 0) {
         return null;
     } else {
-        return rows;
+        return result;
     }
 };
 
+/**
+ * SQL Function that when a user make a bid it will insert the bid into the database
+ * @param auctionId: number
+ * @param id: number
+ * @param amount: number
+ * @param dateTime: Date
+ */
 const bid = async (auctionId: number, id: number, amount: number, dateTime: Date) : Promise<any> => {
     Logger.info(`Inserting a bid into the database`);
     const conn = await getPool().getConnection();

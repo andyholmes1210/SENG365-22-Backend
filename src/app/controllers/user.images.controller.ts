@@ -7,7 +7,7 @@ import Console from "console";
 
 
 /**
- *
+ * Function to get User Image
  * @param req
  * @param res
  */
@@ -41,7 +41,7 @@ const getUserImage = async (req: Request, res: Response) : Promise<void> => {
 };
 
 /**
- *
+ * Function to Update User Image
  * @param req
  * @param res
  */
@@ -95,7 +95,11 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
-
+/**
+ * Function to delete User Image
+ * @param req
+ * @param res
+ */
 const deleteUserImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to delete user image...'`);
 

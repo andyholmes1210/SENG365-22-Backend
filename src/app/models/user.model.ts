@@ -3,11 +3,10 @@ import Logger from "../../config/logger";
 import {ResultSetHeader} from "mysql2";
 import {passwordHash} from '../middleware/password.hash';
 import {passwordVerify} from '../middleware/password.verify';
-import Console from "console";
 
 /**
- *
- * @param values
+ * SQL Function that will register/insert new user into the database
+ * @param values: User types
  */
 const register = async (values: User) : Promise<ResultSetHeader> => {
     Logger.info(`Adding user to the database`);
@@ -21,9 +20,9 @@ const register = async (values: User) : Promise<ResultSetHeader> => {
 };
 
 /**
- *
- * @param values
- * @param token
+ * SQL Function that will log in existing user
+ * @param values: User types
+ * @param token: string
  */
 const login = async (values: User, token: string) : Promise<any> => {
     Logger.info(`Login user into the database`);
@@ -52,8 +51,8 @@ const login = async (values: User, token: string) : Promise<any> => {
 };
 
 /**
- *
- * @param token
+ * SQL Function that will log out the user
+ * @param token: string
  */
 const logout = async (token: string) : Promise<any> => {
     Logger.info(`Logout user from the database`);
@@ -66,6 +65,10 @@ const logout = async (token: string) : Promise<any> => {
 
 };
 
+/**
+ * SQL Function that check if the user exist in the database by using email
+ * @param email: string
+ */
 const checkUserExist = async (email: string) : Promise<any> => {
     Logger.info(`Getting userid from the database`);
 
@@ -74,11 +77,15 @@ const checkUserExist = async (email: string) : Promise<any> => {
     const [ result ] = await conn.query( query, [ email ]);
     conn.release();
     if (result.length === 0) {
-        return false
+        return false;
     } else
         return true;
 };
 
+/**
+ * SQL Function that will get user's token from the database using email
+ * @param email: string
+ */
 const getToken = async (email: string) : Promise<any> => {
     Logger.info(`Getting user token from the database`);
 
@@ -90,6 +97,10 @@ const getToken = async (email: string) : Promise<any> => {
 
 };
 
+/**
+ * SQL Function that will check if the user exist in the database by using user's id
+ * @param id: number
+ */
 const checkId = async (id: number) : Promise<any> => {
     Logger.info(`Checking user in the database`);
 
@@ -98,13 +109,17 @@ const checkId = async (id: number) : Promise<any> => {
     const [ result ] = await conn.query( query, [ id ]);
     conn.release();
     if (result.length === 0) {
-        return false
+        return false;
     } else {
-        return true
+        return true;
     }
-
 };
 
+/**
+ * SQL Function that will check whether the user id match with user token in the database
+ * @param id: number
+ * @param token: string
+ */
 const checkIdMatchToken = async (id: number, token: string) : Promise<any> => {
     Logger.info(`Checking userid match with token in the database`);
 
@@ -113,12 +128,16 @@ const checkIdMatchToken = async (id: number, token: string) : Promise<any> => {
     const [ result ] = await conn.query( query, [[ id ], [ token ]]);
     conn.release();
     if (result.length === 0) {
-        return false
+        return false;
     } else {
-        return true
+        return true;
     }
 };
 
+/**
+ * SQL Function that gets all users details using email
+ * @param email: string
+ */
 const checkEmailExist = async (email: string) : Promise<any> => {
     Logger.info(`Checking email exist in the database`);
 
@@ -127,12 +146,16 @@ const checkEmailExist = async (email: string) : Promise<any> => {
     const [ result ] = await conn.query( query, [[email]]);
     conn.release();
     if (result.length === 0) {
-        return false
+        return false;
     } else {
-        return true
+        return true;
     }
 };
 
+/**
+ * SQL Function that only gets users email, firstname and lastname using id
+ * @param id: number
+ */
 const getUserDetails = async (id: number) : Promise<any> => {
     Logger.info(`Getting user details from the database`);
 
@@ -143,6 +166,10 @@ const getUserDetails = async (id: number) : Promise<any> => {
     return result;
 };
 
+/**
+ * SQL Function that gets all the user details using id
+ * @param id: number
+ */
 const getAllUserDetails = async (id: number) : Promise<any> => {
     Logger.info(`Getting All user details from the database`);
 
@@ -153,6 +180,11 @@ const getAllUserDetails = async (id: number) : Promise<any> => {
     return result;
 };
 
+/**
+ * SQL Function that will update users details
+ * @param id: number
+ * @param values: User types
+ */
 const updateUserDetails = async (id: number, values: User) : Promise<any> => {
     Logger.info(`Updating user details from the database`);
     const conn = await getPool().getConnection();
@@ -161,33 +193,33 @@ const updateUserDetails = async (id: number, values: User) : Promise<any> => {
     if (userExist) {
         if (values.email !== undefined || values.firstName !== undefined || values.lastName !== undefined) {
             if ((values.password === undefined && values.currentPassword !== undefined) || (values.password !== undefined && values.currentPassword === undefined)) {
-                return 0
+                return 0;
             } else {
                 if (values.password === "") {
                     return 0;
                 } else if (values.firstName !== undefined) {
-                    const queryFirstName = 'UPDATE user SET first_name = ? WHERE id = ?'
-                    await conn.query(queryFirstName, [[values.firstName], [id]])
+                    const queryFirstName = 'UPDATE user SET first_name = ? WHERE id = ?';
+                    await conn.query(queryFirstName, [[values.firstName], [id]]);
                 }
                 conn.release()
                 if (values.lastName !== undefined) {
-                    const queryLastname = 'UPDATE user SET last_name = ? WHERE id = ?'
-                    await conn.query(queryLastname, [[values.lastName], [id]])
+                    const queryLastname = 'UPDATE user SET last_name = ? WHERE id = ?';
+                    await conn.query(queryLastname, [[values.lastName], [id]]);
                 }
                 conn.release()
                 if (values.email !== undefined) {
-                    const queryEmail = 'UPDATE user SET email = ? WHERE id = ?'
-                    await conn.query(queryEmail, [[values.email], [id]])
+                    const queryEmail = 'UPDATE user SET email = ? WHERE id = ?';
+                    await conn.query(queryEmail, [[values.email], [id]]);
                 }
                 conn.release()
-                const queryPass = 'SELECT password FROM user WHERE id = ?'
+                const queryPass = 'SELECT password FROM user WHERE id = ?';
                 const [resultPass] = await conn.query(queryPass, [id]);
-                const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password)
+                const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password);
                 if (checkPass) {
-                    const newPassword = await passwordHash(values.password)
+                    const newPassword = await passwordHash(values.password);
                     const query = 'UPDATE user SET password = ? WHERE id = ?';
-                    await conn.query(query, [[newPassword], [id]])
-                    conn.release()
+                    await conn.query(query, [[newPassword], [id]]);
+                    conn.release();
                     return true;
                 } else {
                     return 2;
@@ -200,27 +232,27 @@ const updateUserDetails = async (id: number, values: User) : Promise<any> => {
                 return 0;
             } else {
                 if (values.firstName !== undefined) {
-                    const queryFirstName = 'UPDATE user SET first_name = ? WHERE id = ?'
-                    await conn.query(queryFirstName, [[values.firstName], [ id ]])
+                    const queryFirstName = 'UPDATE user SET first_name = ? WHERE id = ?';
+                    await conn.query(queryFirstName, [[values.firstName], [ id ]]);
                 }
-                conn.release()
+                conn.release();
                 if (values.lastName !== undefined) {
-                    const queryLastname = 'UPDATE user SET last_name = ? WHERE id = ?'
-                    await conn.query(queryLastname, [[values.lastName], [ id ]])
+                    const queryLastname = 'UPDATE user SET last_name = ? WHERE id = ?';
+                    await conn.query(queryLastname, [[values.lastName], [ id ]]);
                 }
-                conn.release()
+                conn.release();
                 if (values.email !== undefined) {
-                    const queryEmail = 'UPDATE user SET email = ? WHERE id = ?'
-                    await conn.query(queryEmail, [[values.email], [ id ]])
+                    const queryEmail = 'UPDATE user SET email = ? WHERE id = ?';
+                    await conn.query(queryEmail, [[values.email], [ id ]]);
                 }
-                conn.release()
-                const queryPass = 'SELECT password FROM user WHERE id = ?'
+                conn.release();
+                const queryPass = 'SELECT password FROM user WHERE id = ?';
                 const [resultPass] = await conn.query(queryPass, [id]);
-                const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password)
+                const checkPass = await passwordVerify(values.currentPassword, resultPass[0].password);
                 if (checkPass) {
-                    const newPassword = await passwordHash(values.password)
+                    const newPassword = await passwordHash(values.password);
                     const query = 'UPDATE user SET password = ? WHERE id = ?';
-                    await conn.query(query, [[newPassword], [id]])
+                    await conn.query(query, [[newPassword], [id]]);
                     return true;
                 } else {
                     return 2;
@@ -229,9 +261,8 @@ const updateUserDetails = async (id: number, values: User) : Promise<any> => {
         }
     } else {
         conn.release();
-        return false
+        return false;
     }
-
 };
 
 

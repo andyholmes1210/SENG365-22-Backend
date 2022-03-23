@@ -3,7 +3,6 @@ import * as auctionBid from '../models/auction.bids.model';
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import Console from "console";
-import {getOne} from "../models/auction.model";
 
 
 const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
@@ -25,6 +24,11 @@ const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to get 1 Auction by id from the Request Params
+ * @param req
+ * @param res
+ */
 const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get One Auction...`)
     const id = req.params.id
@@ -48,8 +52,13 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
 
 };
 
+/**
+ * Function to add a new Auction into the Auction table using Request body as params
+ * @param req
+ * @param res
+ */
 const addAuction = async (req: Request, res: Response) : Promise<void> => {
-    Logger.http(`Request to delete Auction...`)
+    Logger.http(`Request to add Auction...`)
 
     const details = req.body;
     const token = req.header('X-Authorization');
@@ -112,8 +121,13 @@ const addAuction = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to update existing Auction. User can only update their own Auction and can not update once there's a bid
+ * @param req
+ * @param res
+ */
 const updateAuction = async (req: Request, res: Response) : Promise<void> => {
-    Logger.http(`Request to update Auction...`)
+    Logger.http(`Request to update Auction details...`)
 
     const auctionId = req.params.id
     const checkAuction = await auctions.getOne( Number(auctionId) );
@@ -172,6 +186,11 @@ const updateAuction = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to get all Category
+ * @param req
+ * @param res
+ */
 const getAllCategory = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Categories...`)
     try {
@@ -186,6 +205,12 @@ const getAllCategory = async (req: Request, res: Response) : Promise<void> => {
     }
 };
 
+/**
+ * Function to delete an Auction from the database. User can only delete their own Auction and can not
+ * delete an Auction once there's a bid
+ * @param req
+ * @param res
+ */
 const deleteAuctionById = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to delete auction...`)
 
@@ -226,6 +251,6 @@ const deleteAuctionById = async (req: Request, res: Response) : Promise<void> =>
             .send('Internal Server Error');
         return;
     }
-}
+};
 
 export { getAllAuction, getOneAuction, getAllCategory, deleteAuctionById, addAuction, updateAuction }
