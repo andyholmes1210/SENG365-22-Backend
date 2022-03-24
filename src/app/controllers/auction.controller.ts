@@ -2,18 +2,42 @@ import * as auctions from '../models/auction.model';
 import * as auctionBid from '../models/auction.bids.model';
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
-import Console from "console";
 
 
 /**
- * WIP
+ * Function to get all auction with/without query
  * @param req
  * @param res
  */
-// const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
-//     Logger.http(`Request to get All Auction...`)
-//
-// };
+const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
+    Logger.http(`Request to get All Auction...`)
+
+    const body = req.query;
+
+    try {
+        const result = await auctions.getAll(body.q, body.categoryIds, body.startIndex, body.count, body.sellerId, body.bidderId, body.sortBy)
+        if (result === null) {
+            res.status(400)
+                .json('Bad Request');
+            return;
+        } else if (result === 1) {
+            const array = new Array();
+            res.status(200)
+                .json({auctions: array, count: 0});
+            return;
+        } else {
+            res.status(200)
+                .json({auctions: result, count: result.length});
+            return;
+        }
+    } catch {
+        res.status(500)
+            .send('Internal Server Error')
+    }
+
+
+
+};
 
 /**
  * Function to get 1 Auction by id from the Request Params
@@ -243,4 +267,4 @@ const deleteAuctionById = async (req: Request, res: Response) : Promise<void> =>
     }
 };
 
-export { getOneAuction, getAllCategory, deleteAuctionById, addAuction, updateAuction }
+export { getOneAuction, getAllCategory, deleteAuctionById, addAuction, updateAuction, getAllAuction }

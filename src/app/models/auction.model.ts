@@ -4,9 +4,16 @@ import {ResultSetHeader} from "mysql2";
 import {ParsedQs} from "qs";
 
 /**
- * WIP
+ * Get all auction using query
+ * @param q: string | string[] | ParsedQs | ParsedQs[]
+ * @param categoryIds: string | string[] | ParsedQs | ParsedQs[]
+ * @param startIndex: string | string[] | ParsedQs | ParsedQs[]
+ * @param count: string | string[] | ParsedQs | ParsedQs[]
+ * @param sellerId: string | string[] | ParsedQs | ParsedQs[]
+ * @param bidderId: string | string[] | ParsedQs | ParsedQs[]
+ * @param sortBy: string | string[] | ParsedQs | ParsedQs[]
  */
-const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds: string | string[] | ParsedQs | ParsedQs[], startIndex: string | string[] | ParsedQs | ParsedQs[], count: string | string[] | ParsedQs | ParsedQs[], sellerId: string | string[] | ParsedQs | ParsedQs[], bidderId: string | string[] | ParsedQs | ParsedQs[], sortBy: string | string[] | ParsedQs | ParsedQs[]) : Promise<Auction[]> => {
+const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds: string | string[] | ParsedQs | ParsedQs[], startIndex: string | string[] | ParsedQs | ParsedQs[], count: string | string[] | ParsedQs | ParsedQs[], sellerId: string | string[] | ParsedQs | ParsedQs[], bidderId: string | string[] | ParsedQs | ParsedQs[], sortBy: string | string[] | ParsedQs | ParsedQs[]) : Promise<any> => {
     Logger.info(`Getting all Auction from the database`);
     const conn = await getPool().getConnection();
     if(q === undefined && categoryIds === undefined && startIndex === undefined && count === undefined && sellerId === undefined && bidderId === undefined && sortBy === undefined) {
@@ -20,7 +27,7 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
             'user.last_name as sellerLastName, ' +
             'auction.end_date as endDate, ' +
             'COUNT(auction_bid.auction_id) AS numBids, ' +
-            'COALESCE(MAX(auction_bid.amount), 0) AS highestBid ' +
+            'COALESCE(MAX(auction_bid.amount), null) AS highestBid ' +
             'FROM auction ' +
             'JOIN user ON auction.seller_id = user.id ' +
             'JOIN category ON auction.category_id = category.id ' +
@@ -34,87 +41,116 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
         let index = "";
         let countNum = "";
         let sort = "";
-        const result: any[] = [];
-        const counts: any[] = [];
+        let countMax = 0;
+        const resultQ: number[] = [];
+        const counts:object = {};
 
         if (q !== undefined) {
             const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
             const [ result ] = await conn.query( queryQ, [ q ] );
+            // tslint:disable-next-line:prefer-for-of
             for (let i=0;i<result.length;i++){
-                result.push(result[i].id);
+                resultQ.push(result[i].id);
             }
+            countMax += 1;
         }
+
         if (categoryIds !== undefined) {
-            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
-            const [result] = await conn.query(queryQ, [ categoryIds ]);
-            for (let i = 0; i < result.length; i++) {
-                result.push(result[i].id);
+            if (isNaN(Number(categoryIds)) === true) {
+                return null;
             }
-        }
+            const queryQ = "SELECT id FROM auction WHERE category_id = ?"
+            const [result] = await conn.query(queryQ, [Number(categoryIds)]);
+            // tslint:disable-next-line:prefer-for-of
+            for (let i = 0; i < result.length; i++) {
+                resultQ.push(result[i].id);
+            }
+            countMax += 1;
+        };
+
         if (sellerId !== undefined) {
-            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
-            const [result] = await conn.query(queryQ, [ sellerId ]);
-            for (let i = 0; i < result.length; i++) {
-                result.push(result[i].id);
+            if(isNaN(Number(sellerId)) === true) {
+                return null;
             }
-        }
+            const queryQ = "SELECT id FROM auction WHERE seller_id = ?"
+            const [result] = await conn.query(queryQ, [ Number(sellerId) ]);
+            // tslint:disable-next-line:prefer-for-of
+            for (let i=0;i<result.length; i++) {
+                resultQ.push(result[i].id);
+            }
+            countMax += 1;
+        };
+
         if (bidderId !== undefined) {
-            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
-            const [result] = await conn.query(queryQ, [ bidderId ]);
-            for (let i = 0; i < result.length; i++) {
-                result.push(result[i].id);
+            if (isNaN(Number(bidderId)) === true) {
+                return null;
             }
-        }
-        for (const i of result) {
+            const queryQ = "SELECT auction_id FROM auction_bid WHERE user_id = ?"
+            const [result] = await conn.query(queryQ, [ Number(bidderId) ]);
+            // tslint:disable-next-line:prefer-for-of
+            for (let i = 0; i < result.length; i++) {
+                resultQ.push(result[i].auction_id);
+            }
+            countMax += 1;
+        };
+
+        for (const i of resultQ) {
+            // @ts-ignore
             counts[i] = counts[i]?counts[i] + 1 : 1;
         }
         const map = new Map();
-        for (const i of result) {
+        for (const i of resultQ) {
+            // @ts-ignore
             map.set(i, counts[i]);
         }
-        const maxList = [];
-        for (const i of map.values()){
-            maxList.push(i);
-        }
-        const maxValue = maxList.reduce(function(a, b){return Math.max(a, b)},-Infinity);
         const resultF = [];
         for (const [key, value] of map.entries()) {
-            if (value === maxValue){
+            // @ts-ignore
+            if (value >= countMax){
                 resultF.push(key);
             }
         }
         if (startIndex !== undefined) {
+            if (isNaN(Number(startIndex)) === true) {
+                return null;
+            }
             index = ` offset ${startIndex}`;
         }
         if (count !== undefined) {
+            if(isNaN(Number(count)) === true) {
+                return null;
+            }
             countNum = ` limit ${count}`;
+        }
+        if (Object.keys(resultF).length === 0) {
+            return 1;
         }
         if (sortBy !== undefined) {
             if (sortBy === 'ALPHABETICAL_ASC') {
-                sort = ` ORDER BY auction.title ASC`
+                sort = ` ORDER BY auction.title ASC`;
             }
             if (sortBy === 'ALPHABETICAL_DESC') {
-                sort = ` ORDER BY auction.title DESC`
+                sort = ` ORDER BY auction.title DESC`;
             }
             if (sortBy === 'CLOSING_SOON') {
-                sort = ` ORDER BY auction.end_date ASC`
+                sort = ` ORDER BY auction.end_date ASC`;
             }
             if (sortBy === 'CLOSING_LAST') {
-                sort = ` ORDER BY auction.end_date DESC`
+                sort = ` ORDER BY auction.end_date DESC`;
             }
             if (sortBy === 'BIDS_ASC') {
-                sort = ` ORDER BY auction_bid.amount ASC`
+                sort = ` ORDER BY auction_bid.amount ASC`;
             }
             if (sortBy === 'BIDS_DESC') {
-                sort = ` ORDER BY auction_bid.amount DESC`
+                sort = ` ORDER BY auction_bid.amount DESC`;
             }
             if (sortBy === 'RESERVE_ASC') {
-                sort = ` ORDER BY auction.reserve ASC`
+                sort = ` ORDER BY auction.reserve ASC`;
             }
             if (sortBy === 'RESERVE_DESC') {
-                sort = ` ORDER BY auction.reserve DESC`
+                sort = ` ORDER BY auction.reserve DESC`;
             }
-            const query = `SELECT`  +
+            const query = `SELECT `  +
                 `auction.id as auctionId, ` +
                 `auction.title as title, ` +
                 `auction.reserve as reserve, ` +
@@ -124,7 +160,7 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
                 `user.last_name as sellerLastName, ` +
                 `auction.end_date as endDate, ` +
                 `COUNT(auction_bid.auction_id) AS numBids, ` +
-                `COALESCE(MAX(auction_bid.amount), 0) AS highestBid ` +
+                `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
                 `FROM auction ` +
                 `JOIN user ON auction.seller_id = user.id ` +
                 `JOIN category ON auction.category_id = category.id ` +
@@ -135,7 +171,7 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
             conn.release();
             return result;
         } else {
-            const query = `SELECT`  +
+            const query = `SELECT `  +
                 `auction.id as auctionId, ` +
                 `auction.title as title, ` +
                 `auction.reserve as reserve, ` +
@@ -145,14 +181,14 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
                 `user.last_name as sellerLastName, ` +
                 `auction.end_date as endDate, ` +
                 `COUNT(auction_bid.auction_id) AS numBids, ` +
-                `COALESCE(MAX(auction_bid.amount), 0) AS highestBid ` +
+                `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
                 `FROM auction ` +
                 `JOIN user ON auction.seller_id = user.id ` +
                 `JOIN category ON auction.category_id = category.id ` +
                 `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
                 `WHERE auction.id IN (${resultF}) ` +
                 `GROUP BY auction.id ` +
-                `ORDER BY auction.end_date ASC ` + countNum + index ;
+                `ORDER BY auction.end_date ASC` + countNum + index ;
             const [ result ] = await conn.query( query );
             conn.release();
             return result;
@@ -310,4 +346,4 @@ const getCategoryById = async (id: number) : Promise<any> => {
 };
 
 
-export { getOne, category, getAuctionDate, deleteAuction, add, checkAuctionTitle, getCategoryById, update }
+export { getOne, category, getAuctionDate, deleteAuction, add, checkAuctionTitle, getCategoryById, update, getAll }
