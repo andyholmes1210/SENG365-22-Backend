@@ -75,12 +75,12 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
                     }
                 } else {
                     res.status(400)
-                        .send('Bad request: image must be image/jpeg, image/png, image/gif type');
+                        .send('Bad Request: empty image');
                     return;
                 }
             } else {
                 res.status(400)
-                    .send('Bad Request: empty image');
+                    .send('Bad request: image must be image/jpeg, image/png, image/gif type');
                 return;
             }
         } else {

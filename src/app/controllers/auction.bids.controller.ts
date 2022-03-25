@@ -46,9 +46,11 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
     try {
         const auctionExist = await auction.getOne(Number(req.params.id));
         const auctionDate = await auction.getAuctionDate( Number(req.params.id) );
+        Console.log(date)
+        Console.log(auctionDate[0].end_date)
         if (token) {
             if (auctionExist) {
-                if (date < auctionDate) {
+                if (date < auctionDate[0].end_date) {
                     if (req.body.amount > auctionExist[0].reserve) {
                     const highestBid: any = auctionExist[0].amount;
                     const sellerId = auctionExist[0].sellerId;
