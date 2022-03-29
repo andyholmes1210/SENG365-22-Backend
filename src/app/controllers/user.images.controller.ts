@@ -3,7 +3,7 @@ import * as users from "../models/user.model";
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import {getImageExtension} from "../middleware/imageextention";
-import Console from "console";
+import * as Console from "console";
 
 
 /**
@@ -58,10 +58,9 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
             const mimeType = req.header('Content-Type');
             const fileExt: any = await getImageExtension(mimeType);
             if (fileExt !== null){
-                if (req.body.length !== undefined) {
+                if (req.body.length !== 0) {
                     const existImage = await usersImage.getImageU( Number(userId) );
                     const filename = await usersImage.storeImageU(image, fileExt);
-                    Console.log(filename)
                     if (existImage) {
                         await usersImage.updateImageU( Number(userId), filename);
                         res.status(200)
@@ -75,7 +74,7 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
                     }
                 } else {
                     res.status(400)
-                        .send('Bad Request: empty image');
+                        .send('Bad Request: Empty image');
                     return;
                 }
             } else {
