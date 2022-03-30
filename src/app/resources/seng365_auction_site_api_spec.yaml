@@ -1,11 +1,13 @@
 openapi: 3.0.0
 info:
   title: 'SENG365 2022: Auction Site API'
-  version: 1.0.1
+  version: 1.0.2
   description: This specification documents the API that must be implemented for Assignment 1. The API provides all of the server-side functionality necessary in order to implement the user stories for Assignment 2.
 servers:
-  - url: http://seng365-apitest.csse.canterbury.ac.nz:4001/api/v1
+  - url: https://seng365.csse.canterbury.ac.nz/api/v1
     description: reference server
+  - url: http://localhost:4941/api/v1
+    description: Your development server
 tags:
   - name: backdoor
     description: Development-only endpoints for resetting and resampling the database.
@@ -304,6 +306,11 @@ paths:
       description: A user can place a bid on an auction that is open, this bid must be higher than the most recent/current highest bid.
       security:
         - UserToken: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/postBid'
       responses:
         '201':
           description: Created
@@ -745,6 +752,18 @@ components:
         reverseSort:
           type: boolean
           default: false
+    postBid:
+      title: postBid
+      type: object
+      required:
+        - amount
+      properties:
+        amount:
+          type: integer
+          minimum: 1
+          default: 1
+          example: 20
+          nullable: false
     bid:
       title: bid
       type: object
