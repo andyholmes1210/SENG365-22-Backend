@@ -44,20 +44,16 @@ const getAuctionImage = async (req: Request, res: Response) : Promise<void> => {
  */
 const updateAuctionImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to update auction image...'`);
-
     const image = req.body;
     const auctionId = req.params.id;
     const loginId = req.body.authenticatedUserId;
     const auctionDetails = await auction.getOne( Number(auctionId) );
 
-
     if (auctionDetails) {
         const sellerID = auctionDetails[0].sellerId;
         if (Number(loginId) === sellerID) {
             const mimeType = req.header('Content-Type');
-
             const fileExt: any = await getImageExtension(mimeType);
-
             if (fileExt !== null){
                 if (req.body.length !== 0) {
                     const existImage = await auctionImage.getImageA( Number(auctionId) );

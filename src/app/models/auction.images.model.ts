@@ -15,11 +15,11 @@ const getImageA = async (id: number) : Promise<any> => {
     const query = 'SELECT image_filename FROM auction WHERE id = ?';
     const [ result ] = await conn.query( query, [ id ] );
     conn.release();
-    if (result.length !== 0) {
+    if (result.length === 0 || result[0].image_filename === null) {
+        return false;
+    } else {
         const photo = await fs.readFile('storage/images/' + result[0].image_filename);
         return {photo, type: mime.getType(result[0].image_filename)};
-    } else {
-        return false;
     }
 };
 
@@ -39,7 +39,6 @@ const storeImageA = async (image: string, imageFileType: string) : Promise<any> 
             .catch(err);
         throw err;
     }
-
 };
 
 /**

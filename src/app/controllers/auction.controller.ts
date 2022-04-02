@@ -3,7 +3,6 @@ import * as auctionBid from '../models/auction.bids.model';
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
 
-
 /**
  * Function to get all auction with/without query
  * @param req
@@ -11,7 +10,6 @@ import {Request, Response} from "express";
  */
 const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Auction...`)
-
     const body = req.query;
 
     try {
@@ -34,9 +32,6 @@ const getAllAuction = async (req: Request, res: Response) : Promise<void> => {
         res.status(500)
             .send('Internal Server Error')
     }
-
-
-
 };
 
 /**
@@ -52,7 +47,7 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
         const result = await auctions.getOne( Number(id) );
         if (result === false) {
             res.status(404)
-                .send('Not Found');
+                .json('Not Found');
             return;
         } else {
             res.status( 200 )
@@ -73,7 +68,6 @@ const getOneAuction = async (req: Request, res: Response) : Promise<void> => {
  */
 const addAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to add Auction...`)
-
     const details = req.body;
     const token = req.header('X-Authorization');
     const userId = req.body.authenticatedUserId;
@@ -88,10 +82,6 @@ const addAuction = async (req: Request, res: Response) : Promise<void> => {
             } else if (!req.body.hasOwnProperty("description") || details.description.length === 0) {
                 res.status(400)
                     .send('Bad Request: Please provide description');
-                return;
-            } else if (!req.body.hasOwnProperty("reserve") || details.reserve === "") {
-                res.status(400)
-                    .send('Bad Request: Please provide reserve');
                 return;
             } else if (!req.body.hasOwnProperty("categoryId") || !checkCategory) {
                 res.status(400)
@@ -142,7 +132,6 @@ const addAuction = async (req: Request, res: Response) : Promise<void> => {
  */
 const updateAuction = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to update Auction details...`)
-
     const auctionId = req.params.id
     const checkAuction = await auctions.getOne( Number(auctionId) );
     const userId = req.body.authenticatedUserId;
@@ -207,6 +196,7 @@ const updateAuction = async (req: Request, res: Response) : Promise<void> => {
  */
 const getAllCategory = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get All Categories...`)
+
     try {
         const result = await auctions.category();
         res.status( 200 )
@@ -227,7 +217,6 @@ const getAllCategory = async (req: Request, res: Response) : Promise<void> => {
  */
 const deleteAuctionById = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to delete auction...`)
-
     const auctionExist = await auctions.getOne( Number( req.params.id ) );
     const bidExist = await auctionBid.getBid( Number(req.params.id ));
     const token = req.header('X-Authorization');

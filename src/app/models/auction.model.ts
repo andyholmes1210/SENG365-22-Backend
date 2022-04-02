@@ -227,7 +227,6 @@ const getOne = async (id: number) : Promise<any> => {
     } else {
         return result;
     }
-
 };
 
 /**
@@ -238,6 +237,7 @@ const getOne = async (id: number) : Promise<any> => {
  */
 const add = async(values: Auction, id: number, reserve: number) : Promise<ResultSetHeader> => {
     Logger.info(`Adding auction into the database`);
+
     const conn = await getPool().getConnection();
     const query = 'INSERT INTO auction (title, description, end_date, image_filename, reserve, seller_id, category_id) VALUES ( ? )';
     const [ result ] = await conn.query( query ,[[[values.title], [values.description], [values.endDate],
@@ -251,6 +251,7 @@ const add = async(values: Auction, id: number, reserve: number) : Promise<Result
  */
 const category = async () : Promise<Category[]> => {
     Logger.info(`Getting all category from the database`);
+
     const conn = await getPool().getConnection();
     const query = 'SELECT ' +
         '   id AS categoryId, ' +
@@ -283,7 +284,6 @@ const update = async (id: number, values: Auction) : Promise<any> => {
         [values.reserve], [values.categoryId], [ id ]] );
     conn.release();
     return result;
-
 };
 
 /**
@@ -292,6 +292,7 @@ const update = async (id: number, values: Auction) : Promise<any> => {
  */
 const deleteAuction = async (id: number) : Promise<any> => {
     Logger.info(`Deleting auction from the database`);
+
     const conn = await getPool().getConnection();
     const query = 'DELETE FROM auction WHERE id = ?';
     await conn.query( query, [ id ]);
@@ -304,6 +305,7 @@ const deleteAuction = async (id: number) : Promise<any> => {
  */
 const checkAuctionTitle = async (title: string) : Promise<any> => {
     Logger.info(`Checking auction title in the database`);
+
     const conn = await getPool().getConnection();
     const query = 'SELECT id FROM auction where title = ?';
     const [ result ] = await conn.query( query, [ title ]);
@@ -312,7 +314,6 @@ const checkAuctionTitle = async (title: string) : Promise<any> => {
         return false;
     } else
         return true;
-
 };
 
 /**
@@ -321,6 +322,7 @@ const checkAuctionTitle = async (title: string) : Promise<any> => {
  */
 const getAuctionDate = async (id: number) : Promise<any> => {
     Logger.info(`Getting auction date from the database`);
+
     const conn = await getPool().getConnection();
     const query = 'SELECT end_date FROM auction WHERE id = ?';
     const [ result ] = await conn.query( query , [ id ]);

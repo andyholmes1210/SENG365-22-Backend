@@ -2,7 +2,6 @@ import * as auctionBid from '../models/auction.bids.model';
 import * as auction from '../models/auction.model'
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
-import * as Console from "console";
 
 /**
  * Function to get the all bid by using the id from the Request params
@@ -46,39 +45,37 @@ const postBid = async (req: Request, res: Response) : Promise<void> => {
     try {
         const auctionExist = await auction.getOne(Number(req.params.id));
         const auctionDate = await auction.getAuctionDate( Number(req.params.id) );
-        Console.log(date)
-        Console.log(auctionDate[0].end_date)
         if (token) {
             if (auctionExist) {
-                if (date < auctionDate[0].end_date) {
-                    if (req.body.amount > auctionExist[0].reserve) {
-                    const highestBid: any = auctionExist[0].amount;
-                    const sellerId = auctionExist[0].sellerId;
-                        if (sellerId.sellerId === Number(req.body.authenticatedUserId)) {
-                            res.status(403)
-                                .send("Forbidden: Can not place bid on your own Auction");
-                            return;
-                        } else {
-                           if (req.body.amount < highestBid) {
+                const sellerId = auctionExist[0].sellerId;
+                if (sellerId === Number(req.body.authenticatedUserId)) {
+                    res.status(403)
+                        .send("Forbidden: Can not place bid on your own Auction");
+                    return;
+                } else {
+                    if (date < auctionDate[0].end_date) {
+                        if (req.body.amount > auctionExist[0].reserve) {
+                            const highestBid: any = auctionExist[0].highestBid;
+                            if (req.body.amount < highestBid) {
                                 res.status(400)
                                     .send("Bad Request: Amount must be higher than the current bid");
-                               return;
+                                return;
                             } else {
                                 await auctionBid.bid( Number(req.params.id), Number(req.body.authenticatedUserId), req.body.amount, date);
                                 res.status(201)
-                                 .send("Bid Placed");
-                               return;
+                                    .send("Bid Placed");
+                                return;
                             }
+                        } else {
+                            res.status(404)
+                                .send("Bad Request: Bid must be greater than the reserved price");
+                            return;
                         }
                     } else {
-                        res.status(404)
-                            .send("Bad Request: Bid must be greater than the reserved price");
+                        res.status(400)
+                            .send("Bad Request: Auction ended");
                         return;
                     }
-                } else {
-                    res.status(400)
-                        .send("Bad Request: Auction ended");
-                    return;
                 }
             } else {
                 res.status(404)

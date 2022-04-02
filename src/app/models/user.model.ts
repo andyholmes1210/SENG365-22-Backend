@@ -31,14 +31,12 @@ const login = async (values: User, token: string) : Promise<any> => {
     const query = 'SELECT * FROM user WHERE email = ?';
     const [ result ] = await conn.query( query, [values.email]);
     conn.release();
-
     if (result.length !== 0) {
         const query1 = 'SELECT password FROM user WHERE email = ?';
         const [ result1 ] = await conn.query( query1, [ values.email ]);
         conn.release();
         const pass = result1[0].password;
         const passwordT = await passwordVerify(values.password, pass);
-
         if (passwordT) {
             const query2 = 'UPDATE user SET auth_token = ? WHERE email = ?';
             const [result2] = await conn.query(query2, [token, values.email]);
@@ -62,7 +60,6 @@ const logout = async (token: string) : Promise<any> => {
     const [ result ] = await conn.query( query, [[null], [token]]);
     conn.release();
     return result;
-
 };
 
 /**
@@ -94,7 +91,6 @@ const getToken = async (email: string) : Promise<any> => {
     const [ result ] = await conn.query( query, [ email ]);
     conn.release();
     return result;
-
 };
 
 /**

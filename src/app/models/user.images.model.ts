@@ -11,6 +11,7 @@ const imagesDirectory = './storage/images/';
  */
 const getImageU = async (id: number) : Promise<any> => {
     Logger.info(`Getting user image from the database`);
+
     const conn = await getPool().getConnection();
     const query = 'SELECT image_filename FROM user WHERE id = ?';
     const [ result ] = await conn.query( query, [ id ] );
@@ -36,7 +37,6 @@ const updateImageU = async (id: number, imageFilename: string) : Promise<any> =>
     const [ result ] = await conn.query( query, [[ imageFilename ], [ id ]]);
     conn.release();
     return result
-
 };
 
 /**
@@ -55,7 +55,6 @@ const storeImageU = async (image: string, imageFileType: string) : Promise<any> 
             .catch(err);
         throw err;
     }
-
 };
 
 /**
@@ -66,7 +65,7 @@ const deleteImageU = async (id: number) : Promise<any> => {
     Logger.info(`Deleting user image from the database`);
 
     const conn = await getPool().getConnection();
-    const query = 'UPDATE user SET imagine_filename = ? WHERE = ?';
+    const query = 'UPDATE user SET image_filename = ? WHERE id = ?';
     const [ result ] = await conn.query( query, [[ null ], [ id ]]);
     conn.release();
     return result

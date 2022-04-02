@@ -5,7 +5,6 @@ import {Request, Response} from "express";
 import {getImageExtension} from "../middleware/imageextention";
 import * as Console from "console";
 
-
 /**
  * Function to get User Image
  * @param req
@@ -13,8 +12,8 @@ import * as Console from "console";
  */
 const getUserImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to get user image...'`);
-
     const id = req.params.id;
+
     try {
         const result = await usersImage.getImageU( Number(id) );
         if (result === false) {
@@ -47,7 +46,6 @@ const getUserImage = async (req: Request, res: Response) : Promise<void> => {
  */
 const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to update user image...'`);
-
     const image = req.body;
     const userId = req.params.id;
     const loginId = req.body.authenticatedUserId;
@@ -101,7 +99,6 @@ const updateUserImage = async (req: Request, res: Response) : Promise<void> => {
  */
 const deleteUserImage = async (req: Request, res: Response) : Promise<void> => {
     Logger.http(`Request to delete user image...'`);
-
     const id = req.params.id;
     const loginId = req.body.authenticatedUserId;
     const userExist = await users.checkId( Number(id) );

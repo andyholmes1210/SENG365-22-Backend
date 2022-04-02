@@ -60,7 +60,6 @@ const registerUser = async (req: Request, res: Response) : Promise<void> => {
  */
 const loginUser = async (req: Request, res: Response) : Promise<void> => {
     Logger.http('Request to login a user...');
-
     const token = await randomToken(32);
     const tokenExist = await users.getToken(req.body.email);
     const userExist = await users.checkUserExist(req.body.email)
@@ -241,9 +240,7 @@ const updateDetails = async (req: Request, res: Response) : Promise<void> => {
         res.status(500)
             .send('Internal Server Error');
         return;
-
     }
 };
-
 
 export { registerUser, loginUser, logoutUser, getDetails, updateDetails }
