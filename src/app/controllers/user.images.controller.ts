@@ -3,7 +3,6 @@ import * as users from "../models/user.model";
 import Logger from "../../config/logger";
 import {Request, Response} from "express";
 import {getImageExtension} from "../middleware/imageextention";
-import * as Console from "console";
 
 /**
  * Function to get User Image

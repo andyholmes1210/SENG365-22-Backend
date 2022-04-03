@@ -42,17 +42,17 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
         let countNum = "";
         let sort = "";
         let countMax = 0;
+        let qString = "";
         const resultQ: number[] = [];
-        const counts:object = {};
+        const counts: object = {};
 
         if (q !== undefined) {
-            const queryQ = "SELECT id FROM auction WHERE locate(?, title, 0) != 0"
-            const [ result ] = await conn.query( queryQ, [ q ] );
-            // tslint:disable-next-line:prefer-for-of
-            for (let i=0;i<result.length;i++){
-                resultQ.push(result[i].id);
+            if (typeof q === 'string') {
+                qString = ` AND auction.title LIKE '%${q}%' `;
+            } else {
+                conn.release();
+                return null;
             }
-            countMax += 1;
         }
 
         if (categoryIds !== undefined) {
@@ -66,37 +66,40 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
                 resultQ.push(result[i].id);
             }
             countMax += 1;
-        };
+        }
+        ;
 
         if (sellerId !== undefined) {
-            if(isNaN(Number(sellerId)) === true) {
+            if (isNaN(Number(sellerId)) === true) {
                 return null;
             }
             const queryQ = "SELECT id FROM auction WHERE seller_id = ?"
-            const [result] = await conn.query(queryQ, [ Number(sellerId) ]);
+            const [result] = await conn.query(queryQ, [Number(sellerId)]);
             // tslint:disable-next-line:prefer-for-of
-            for (let i=0;i<result.length; i++) {
+            for (let i = 0; i < result.length; i++) {
                 resultQ.push(result[i].id);
             }
             countMax += 1;
-        };
+        }
+        ;
 
         if (bidderId !== undefined) {
             if (isNaN(Number(bidderId)) === true) {
                 return null;
             }
             const queryQ = "SELECT auction_id FROM auction_bid WHERE user_id = ?"
-            const [result] = await conn.query(queryQ, [ Number(bidderId) ]);
+            const [result] = await conn.query(queryQ, [Number(bidderId)]);
             // tslint:disable-next-line:prefer-for-of
             for (let i = 0; i < result.length; i++) {
                 resultQ.push(result[i].auction_id);
             }
             countMax += 1;
-        };
+        }
+        ;
 
         for (const i of resultQ) {
             // @ts-ignore
-            counts[i] = counts[i]?counts[i] + 1 : 1;
+            counts[i] = counts[i] ? counts[i] + 1 : 1;
         }
         const map = new Map();
         for (const i of resultQ) {
@@ -106,7 +109,7 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
         const resultF = [];
         for (const [key, value] of map.entries()) {
             // @ts-ignore
-            if (value >= countMax){
+            if (value >= countMax) {
                 resultF.push(key);
             }
         }
@@ -117,40 +120,133 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
             index = ` offset ${startIndex}`;
         }
         if (count !== undefined) {
-            if(isNaN(Number(count)) === true) {
+            if (isNaN(Number(count)) === true) {
                 return null;
             }
             countNum = ` limit ${count}`;
         }
-        if (Object.keys(resultF).length === 0) {
-            return 1;
-        }
+
         if (sortBy !== undefined) {
-            if (sortBy === 'ALPHABETICAL_ASC') {
-                sort = ` ORDER BY auction.title ASC`;
+            if (typeof sortBy === 'string') {
+                if (sortBy === 'ALPHABETICAL_ASC') {
+                    sort = ` ORDER BY auction.title ASC`;
+                } else if (sortBy === 'ALPHABETICAL_DESC') {
+                    sort = ` ORDER BY auction.title DESC`;
+                } else if (sortBy === 'CLOSING_SOON') {
+                    sort = ` ORDER BY auction.end_date ASC`;
+                } else if (sortBy === 'CLOSING_LAST') {
+                    sort = ` ORDER BY auction.end_date DESC`;
+                } else if (sortBy === 'BIDS_ASC') {
+                    sort = ` ORDER BY auction_bid.amount ASC`;
+                } else if (sortBy === 'BIDS_DESC') {
+                    sort = ` ORDER BY auction_bid.amount DESC`;
+                } else if (sortBy === 'RESERVE_ASC') {
+                    sort = ` ORDER BY auction.reserve ASC`;
+                } else if (sortBy === 'RESERVE_DESC') {
+                    sort = ` ORDER BY auction.reserve DESC`;
+                } else {
+                    conn.release();
+                    return false;
+                }
+            } else {
+                conn.release();
+                return false;
             }
-            if (sortBy === 'ALPHABETICAL_DESC') {
-                sort = ` ORDER BY auction.title DESC`;
+        }
+        if (!(Object.keys(resultF).length === 0)) {
+            if (sort !== "") {
+                const query = `SELECT ` +
+                    `auction.id as auctionId, ` +
+                    `auction.title as title, ` +
+                    `auction.reserve as reserve, ` +
+                    `auction.seller_id as sellerId, ` +
+                    `auction.category_id as categoryId, ` +
+                    `user.first_name as sellerFirstName, ` +
+                    `user.last_name as sellerLastName, ` +
+                    `auction.end_date as endDate, ` +
+                    `COUNT(auction_bid.auction_id) AS numBids, ` +
+                    `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
+                    `FROM auction ` +
+                    `JOIN user ON auction.seller_id = user.id ` +
+                    `JOIN category ON auction.category_id = category.id ` +
+                    `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                    `WHERE auction.id IN (${resultF}) ` + qString +
+                    `GROUP BY auction.id` + sort + countNum + index;
+                const [result] = await conn.query(query);
+                conn.release();
+                return result;
+            } else {
+                const query = `SELECT ` +
+                    `auction.id as auctionId, ` +
+                    `auction.title as title, ` +
+                    `auction.reserve as reserve, ` +
+                    `auction.seller_id as sellerId, ` +
+                    `auction.category_id as categoryId, ` +
+                    `user.first_name as sellerFirstName, ` +
+                    `user.last_name as sellerLastName, ` +
+                    `auction.end_date as endDate, ` +
+                    `COUNT(auction_bid.auction_id) AS numBids, ` +
+                    `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
+                    `FROM auction ` +
+                    `JOIN user ON auction.seller_id = user.id ` +
+                    `JOIN category ON auction.category_id = category.id ` +
+                    `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                    `WHERE auction.id IN (${resultF}) ` + qString +
+                    `GROUP BY auction.id ` +
+                    `ORDER BY auction.end_date ASC` + countNum + index;
+                const [result] = await conn.query(query);
+                conn.release();
+                return result;
             }
-            if (sortBy === 'CLOSING_SOON') {
-                sort = ` ORDER BY auction.end_date ASC`;
+
+        } else if (qString !== "") {
+            qString = ` auction.title LIKE '%${q}%' `;
+            if (sort === "") {
+                const query = `SELECT ` +
+                    `auction.id as auctionId, ` +
+                    `auction.title as title, ` +
+                    `auction.reserve as reserve, ` +
+                    `auction.seller_id as sellerId, ` +
+                    `auction.category_id as categoryId, ` +
+                    `user.first_name as sellerFirstName, ` +
+                    `user.last_name as sellerLastName, ` +
+                    `auction.end_date as endDate, ` +
+                    `COUNT(auction_bid.auction_id) AS numBids, ` +
+                    `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
+                    `FROM auction ` +
+                    `JOIN user ON auction.seller_id = user.id ` +
+                    `JOIN category ON auction.category_id = category.id ` +
+                    `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                    `WHERE` + qString +
+                    `GROUP BY auction.id ` +
+                    `ORDER BY auction.end_date ASC` + countNum + index;
+                const [result] = await conn.query(query);
+                conn.release();
+                return result;
+            } else {
+                const query = `SELECT ` +
+                    `auction.id as auctionId, ` +
+                    `auction.title as title, ` +
+                    `auction.reserve as reserve, ` +
+                    `auction.seller_id as sellerId, ` +
+                    `auction.category_id as categoryId, ` +
+                    `user.first_name as sellerFirstName, ` +
+                    `user.last_name as sellerLastName, ` +
+                    `auction.end_date as endDate, ` +
+                    `COUNT(auction_bid.auction_id) AS numBids, ` +
+                    `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
+                    `FROM auction ` +
+                    `JOIN user ON auction.seller_id = user.id ` +
+                    `JOIN category ON auction.category_id = category.id ` +
+                    `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                    `WHERE` + qString +
+                    `GROUP BY auction.id` + sort + countNum + index;
+                const [result] = await conn.query(query);
+                conn.release();
+                return result;
             }
-            if (sortBy === 'CLOSING_LAST') {
-                sort = ` ORDER BY auction.end_date DESC`;
-            }
-            if (sortBy === 'BIDS_ASC') {
-                sort = ` ORDER BY auction_bid.amount ASC`;
-            }
-            if (sortBy === 'BIDS_DESC') {
-                sort = ` ORDER BY auction_bid.amount DESC`;
-            }
-            if (sortBy === 'RESERVE_ASC') {
-                sort = ` ORDER BY auction.reserve ASC`;
-            }
-            if (sortBy === 'RESERVE_DESC') {
-                sort = ` ORDER BY auction.reserve DESC`;
-            }
-            const query = `SELECT `  +
+        } else if (sort !== "") {
+            const query = `SELECT ` +
                 `auction.id as auctionId, ` +
                 `auction.title as title, ` +
                 `auction.reserve as reserve, ` +
@@ -165,33 +261,34 @@ const getAll = async (q: string | string[] | ParsedQs | ParsedQs[], categoryIds:
                 `JOIN user ON auction.seller_id = user.id ` +
                 `JOIN category ON auction.category_id = category.id ` +
                 `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
-                `WHERE auction.id IN (${resultF}) ` +
                 `GROUP BY auction.id` + sort + countNum + index;
-            const [ result ] = await conn.query( query );
+            const [result] = await conn.query(query);
+            conn.release();
+            return result;
+        } else if (countNum !== "") {
+            const query = `SELECT ` +
+                `auction.id as auctionId, ` +
+                `auction.title as title, ` +
+                `auction.reserve as reserve, ` +
+                `auction.seller_id as sellerId, ` +
+                `auction.category_id as categoryId, ` +
+                `user.first_name as sellerFirstName, ` +
+                `user.last_name as sellerLastName, ` +
+                `auction.end_date as endDate, ` +
+                `COUNT(auction_bid.auction_id) AS numBids, ` +
+                `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
+                `FROM auction ` +
+                `JOIN user ON auction.seller_id = user.id ` +
+                `JOIN category ON auction.category_id = category.id ` +
+                `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
+                `GROUP BY auction.id ` +
+                `ORDER BY auction.end_date ASC` + countNum + index;
+            const [result] = await conn.query(query);
             conn.release();
             return result;
         } else {
-            const query = `SELECT `  +
-                `auction.id as auctionId, ` +
-                `auction.title as title, ` +
-                `auction.reserve as reserve, ` +
-                `auction.seller_id as sellerId, ` +
-                `auction.category_id as categoryId, ` +
-                `user.first_name as sellerFirstName, ` +
-                `user.last_name as sellerLastName, ` +
-                `auction.end_date as endDate, ` +
-                `COUNT(auction_bid.auction_id) AS numBids, ` +
-                `COALESCE(MAX(auction_bid.amount), null) AS highestBid ` +
-                `FROM auction ` +
-                `JOIN user ON auction.seller_id = user.id ` +
-                `JOIN category ON auction.category_id = category.id ` +
-                `LEFT JOIN auction_bid ON auction.id = auction_bid.auction_id ` +
-                `WHERE auction.id IN (${resultF}) ` +
-                `GROUP BY auction.id ` +
-                `ORDER BY auction.end_date ASC` + countNum + index ;
-            const [ result ] = await conn.query( query );
             conn.release();
-            return result;
+            return null;
         }
     }
 };
